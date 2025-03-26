@@ -32,4 +32,3 @@ conn.commit()
 conn.close()
 
 print(f"数据库 {db_file} 创建完成！")
-print("bbb")

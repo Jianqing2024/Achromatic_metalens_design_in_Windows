@@ -13,4 +13,3 @@ conn.commit()
 conn.close()
 
 print("所有数据已清除，但表结构仍然存在。")
-print("bbb")

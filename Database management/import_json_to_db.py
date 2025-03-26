@@ -34,4 +34,3 @@ conn.commit()
 conn.close()
 
 print("数据已成功导入数据库！")
-print("bbb")
