@@ -89,3 +89,18 @@ def addMetaSource(fdtd, size_x, size_y, z, wavelength):
     
     fdtd.set("wavelength start", wavelength)
     fdtd.set("wavelength stop", wavelength)
+    
+def classicMonitorGroup(fdtd, size_x, size_y, z):
+    fdtd.addpower(name="point")
+    fdtd.set("monitor type", "point")
+    fdtd.set("x", 0)
+    fdtd.set("y", 0)
+    fdtd.set("z", z)
+    
+    fdtd.addpower(name="plane")
+    fdtd.set("x", 0)
+    fdtd.set("y", 0)
+    fdtd.set("z", z)
+    fdtd.set("x span", size_x)
+    fdtd.set("y span", size_y)
+    
