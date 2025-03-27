@@ -15,6 +15,6 @@ MetaSet.addMetaBase(fdtd, "SiO2 (Glass) - Palik", 0.4e-6, 0.4e-6, 0.4e-6)
 MetaSet.addMetaCircle(fdtd, "Si (Silicon) - Palik", 0.18e-6, 0.6e-6)
 
 MetaSet.addMetaSource(fdtd, 0.4e-6, 0.4e-6, -0.05e-6, 0.532e-6)
-
+print("aaaaa")
 fdtd.save("fdtd_simulation.fsp")
 fdtd.run()
