@@ -1,7 +1,5 @@
 import numpy as np
-import time
 import importlib.util
-import os
 
 module_name = "lumapi"
 file_path = "D:\\Program Files\\Lumerical\\v241\\api\\python\\lumapi.py"
@@ -22,9 +20,9 @@ def xf_port(name,x,y,z,y_span,z_span,f):
     fdtd.set('direction',f)
 
 #长度单位默认米m，因此加上e-6变成微米，时间单位默认秒s，因此需要e-15
-fdtd = lumapi.FDTD()
-fdtd.save(str(221) + '.fsp')
-fdtd.addfdtd(x=0,y=0,z=0,x_span=9e-6,y_span=10e-6,z_span=1e-6)
+fdtd = lumapi.FDTD() # 招出FDTD窗口
+fdtd.save(str(221) + '.fsp') # 保存文件
+fdtd.addfdtd(x=0,y=0,z=0,x_span=9e-6,y_span=10e-6,z_span=1e-6) # 新建FDTD求解区域
 fdtd.select("FDTD")
 fdtd.set('simulation time',8e-12)
 fdtd.set('dt stability factor',0.99)
