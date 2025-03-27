@@ -1,2 +1,2 @@
 # Inverse_Design_For_Metalens
-计划包括三部分：基于LumericalFDTD的自动扫参、数据库、逆向学习
+计划包括三部分：基于LumericalFDTD的自动仿真、数据库、基于深度学习的逆向设计
