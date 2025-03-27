@@ -18,6 +18,7 @@ ms.addMetaSource(fdtd, 0.4e-6, 0.4e-6, -0.05e-6, 0.532e-6)
 
 ms.classicMonitorGroup(fdtd, 0.4e-6, 0.4e-6, 1e-6)
 
+# 一定要先运行哦
 fdtd.save("fdtd_simulation.fsp")
 fdtd.run()
 

@@ -55,7 +55,4 @@ fdtd.setglobalsource('wavelength start',1500e-9)
 fdtd.setglobalsource('wavelength stop',1600e-9)
 
 fdtd.addprofile(name='1',x=0,y=0,z=0,x_span=11e-6,y_span=12e-6)
-
-
-
 fdtd.run()

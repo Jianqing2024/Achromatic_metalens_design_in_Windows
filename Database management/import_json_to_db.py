@@ -30,6 +30,7 @@ for item in data:
         VALUES (?, ?, ?, ?)""", (structure_id, wavelength, phase_shift, transmission))
 
 # 提交更改并关闭数据库
+# 必须关闭数据库
 conn.commit()
 conn.close()
 
