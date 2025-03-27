@@ -1,6 +1,14 @@
 import numpy as np
 
 def classicDataAcquisition(fdtd):
+    """标准计算函数,Ex_angle为相位,T为透射率
+
+    Args:
+        fdtd (fdtd): fdtd窗口
+
+    Returns:
+        list: list第一个数值为相位差,第二个数值为透射率
+    """
     Ex=fdtd.getdata("point", "Ex")
     Ex_angle=np.angle(Ex)
     T=fdtd.transmission("plane")
