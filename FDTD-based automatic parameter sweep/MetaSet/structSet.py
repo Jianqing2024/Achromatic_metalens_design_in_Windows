@@ -59,6 +59,7 @@ def addMetaCircle(fdtd, material, radius, high):
     """
     fdtd.addcircle()
     
+    fdtd.set("name", "cylinder")
     fdtd.set("x", 0)
     fdtd.set("y", 0)
     
