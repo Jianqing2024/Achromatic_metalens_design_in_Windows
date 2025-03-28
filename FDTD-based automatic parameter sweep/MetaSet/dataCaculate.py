@@ -7,7 +7,7 @@ def classicDataAcquisition(fdtd):
         fdtd (fdtd): fdtd窗口
 
     Returns:
-        list: list第一个数值为相位差,第二个数值为透射率
+        list: list第一个数值为相位差,第二个数值为透射率.符合numpy的double格式
     """
     Ex=fdtd.getdata("point", "Ex")
     Ex_angle=np.angle(Ex)
