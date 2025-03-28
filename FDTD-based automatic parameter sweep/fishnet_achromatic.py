@@ -66,6 +66,18 @@ for key, value in parameterPet.items():
         
         for wl in waveLength:
             ms.setMetaFdtd(fdtd, p, p, 1e-6, -0.5e-6)
-            ms.addMetaBase(fdtd, "SiO2 (Glass) - Palik", 0.4e-6, 0.4e-6, 0.4e-6)
-            ms.addMetaSource(fdtd, 0.4e-6, 0.4e-6, -0.05e-6, wl)
-            ms.classicMonitorGroup(fdtd, 0.4e-6, 0.4e-6, 1e-6)
+            ms.addMetaBase(fdtd, "SiO2 (Glass) - Palik", p, p, 0.5e-6)
+            ms.addMetaSource(fdtd, p, p, -0.25e-6, wl)
+            ms.classicMonitorGroup(fdtd, p, p, 1e-6)
+            
+            ms.addMetaRect(fdtd, "SiO2 (Glass) - Palik", l, w, h, name="recX")
+            ms.addMetaRect(fdtd, "SiO2 (Glass) - Palik", w, l, h, name="recY")
+            ms.addMetaCircle(fdtd, "SiO2 (Glass) - Palik", r, h)
+            
+            fdtd.run()
+            data=ms.classicDataAcquisition(fdtd)
+            
+            print(data)
+            
+            fdtd.switchtolayout()
+            fdtd.deleteall()
