@@ -49,7 +49,7 @@ def addMetaBase(fdtd, material, size_x, size_y, size_z, *,name="base"):
     
     fdtd.set("material", material)    
     
-def addMetaSource(fdtd, size_x, size_y, z, wavelength):
+def addMetaSource(fdtd, size_x, size_y, z, wavelength, *, name="source"):
     """建立平面波光源,以z轴为对称轴
 
     Args:
@@ -69,6 +69,8 @@ def addMetaSource(fdtd, size_x, size_y, z, wavelength):
     
     fdtd.set("wavelength start", wavelength)
     fdtd.set("wavelength stop", wavelength)
+    
+    fdtd.set("name","source")
     
 def classicMonitorGroup(fdtd, size_x, size_y, z):
     """建立一个经典监视器组，包括两个频域能量监视器，
