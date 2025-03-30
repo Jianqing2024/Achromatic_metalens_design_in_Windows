@@ -91,7 +91,14 @@ for key, value in parameterPet.items():
         INSERT INTO structures (baseValue, P, H, L, W, R, angleIn532, transIn532, angleIn800, transIn800)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (int(counter), p, h, l, w, r, data[0], data[1], data[2], data[3]))
-        
+
+"""
+以后要改为只存入一次数据,减少i/o消耗
+想办法可以改参数而不是删结构，但我觉得其实差不多
+再确认一次参数选择的规则
+"""
+
+
 conn.commit()
 conn.close()    
                     
