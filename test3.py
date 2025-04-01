@@ -44,7 +44,6 @@ def simulation(wav):
 spec = importlib.util.spec_from_file_location("lumapi", "D:\\Program Files\\Lumerical\\v241\\api\\python\\lumapi.py")
 lumapi = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(lumapi) 
-
 # 计算参数
 P=np.linspace(0.2e-6,0.5e-6,2)
 H=np.linspace(0.2e-6,0.8e-6,2)
@@ -67,17 +66,15 @@ parameterPet = defaultdict(list)
 for row in unclusteredParameterPet:
     param1, param2 = row[0], row[1]
     parameterPet[(param1, param2)].append(row)
-
+    
 tic=time.time()
-if __name__ == "__main__":
-    init = [0.532e-6, 0.800e-6]  # 输入数据
-    
-    with multiprocessing.Pool(processes=2) as pool:
-        data = pool.map(simulation, init)  # 将每个输入元素传给 simulation 函数并行执行
-    
-    print(data)  # 输出并行计算结果
+
+data1 = simulation(0.532e-6)
+data2 = simulation(0.800e-6)
+
+print(data1)
+print(data2)
 toc=time.time()
 
 tim=toc-tic
-
-print(f"并行法{tim}秒")
+print(f"no并行{tim}秒")
