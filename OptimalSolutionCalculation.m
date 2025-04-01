@@ -46,12 +46,9 @@ end
 Fit=sum(Interpolation);
 
 function vec = generate_vector(start_pos, step_size, R)
-    % 计算能够接近 R 的最大元素数量
     n = floor((R - start_pos) / step_size) + 1;
-    % 生成向量
     vec = start_pos : step_size : start_pos + (n - 1) * step_size;
 end
-
 
 function phi=Hyperbolic_phase(r,lambda,f)
 phi=-2*pi/lambda*(sqrt(r.^2+f^2)-f);
