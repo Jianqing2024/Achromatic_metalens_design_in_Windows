@@ -10,4 +10,3 @@ function y=fu(x)
 global data
 y=sum(data)*x;
 end
-isempty()

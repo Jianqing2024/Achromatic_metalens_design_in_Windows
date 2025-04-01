@@ -17,16 +17,15 @@ def simulation(wav):
     
     fdtd.save("simulation.fsp")
     
-    data = np.empty((0, 2))
+    data = np.empty((0, 4))
 
     for key, value in parameterPet.items():
         p,h=key[0],key[1]
-        print(value)
         ms.setMetaFdtd(fdtd, p, p, 1e-6, -0.5e-6)
         ms.classicMonitorGroup(fdtd, p, p, 1e-6)
         ms.addMetaSource(fdtd, p, p, -0.25e-6, wav)
         ms.addMetaBase(fdtd, "SiO2 (Glass) - Palik", p, p, 0.5e-6)
-        
+        main=np.array([p,h])
         for parameter in value:
             p=parameter[0] # 晶胞周期
             h=parameter[1] # 结构高度
@@ -38,14 +37,13 @@ def simulation(wav):
             
             fdtd.run()
             da = ms.classicDataAcquisition(fdtd)
-            data = np.vstack([data, da]) 
-
-            print("本次运算已完成")
+            da = np.hstack((main, da))
+            data = np.vstack([data,da]) 
 
             fdtd.switchtolayout()
             fdtd.select("Group")
             fdtd.delete()
-            
+
         fdtd.deleteall()
     
     
@@ -73,7 +71,6 @@ for p in P:
                     for r in R:
                         if w <= 2 * r and 2 * r < p:
                             unclusteredParameterPet = np.vstack([unclusteredParameterPet, np.array([p, h, l, w, r])])
-                            print(f"p={p} h={h} l={l} w={w} r={r}")
 
 parameterPet = defaultdict(list)
     
@@ -81,6 +78,5 @@ for row in unclusteredParameterPet:
     param1, param2 = row[0], row[1]
     parameterPet[(param1, param2)].append(row)
 
-
-data=simulation(0.532e-6)
+data=simulation(0.800e-6)
 print(data)
