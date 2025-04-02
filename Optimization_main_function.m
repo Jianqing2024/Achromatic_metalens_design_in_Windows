@@ -18,15 +18,21 @@ save parameter.mat parameter
 
 db = sqlite('structures.db', 'readonly');
 numBaseValue=table2array(fetch(db, 'SELECT COUNT(DISTINCT baseValue) FROM structures;'));
+% 
+% opt=zeros(numBaseValue,1);
+% fit=cell(numBaseValue,1);
+% for i=1:numBaseValue
+%     sql=sprintf("SELECT * FROM structures WHERE baseValue = %d;",i);
+%     data=fetch(db, sql);
+%     save("data.mat",data)
+%     % 写完后改成那个函数
+%     [opt(i), fit{i}] = ga(@OptimalSolutionCalculation, nvars, [], [], [], [], lb, ub, [], options);
+% end
+% 
+% [bestFit,idx]=min(fit);
+%%
+idx=3;
 
-opt=zeros(numBaseValue,1);
-fit=cell(numBaseValue,1);
-for i=1:numBaseValue
-    sql=sprintf("SELECT * FROM structures WHERE baseValue = %d;",i);
-    data=fetch(db, sql);
-    save("data.mat",data)
-    % 写完后改成那个函数
-    [opt(i), fit{i}] = ga(@OptimalSolutionCalculation, nvars, [], [], [], [], lb, ub, [], options);
-end
-
-[bestFit,idx]=min(fit);
+sql=sprintf("SELECT * FROM structures WHERE baseValue = %d;",idx);
+data=fetch(db, sql);
+close(db);

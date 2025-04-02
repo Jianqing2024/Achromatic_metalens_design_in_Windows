@@ -12,7 +12,7 @@ def simulation(wav):
 
     fdtd.save(f"s{int(wav*1e9)}.fsp")
     
-    data = np.empty((0, 4))
+    data = np.empty((0, 7))
 
     for key, value in parameterPet.items():
         p,h=key[0],key[1]
@@ -20,7 +20,6 @@ def simulation(wav):
         ms.classicMonitorGroup(fdtd, p, p, 1e-6)
         ms.addMetaSource(fdtd, p, p, -0.25e-6, wav)
         ms.addMetaBase(fdtd, "SiO2 (Glass) - Palik", p, p, 0.5e-6)
-        main=np.array([p,h])
         for parameter in value:
             l=parameter[2] # 十字结构长度
             w=parameter[3] # 十字结构宽度
@@ -29,6 +28,7 @@ def simulation(wav):
             adv.fishnetset(fdtd, "SiO2 (Glass) - Palik", h, l, w, r, name="Group")
             
             fdtd.run()
+            main=np.array([p,h,l,w,r])
             da = ms.classicDataAcquisition(fdtd)
             da = np.concatenate((main, da),axis=0)
             data = np.vstack([data,da]) 
@@ -38,6 +38,21 @@ def simulation(wav):
 
         fdtd.deleteall()
     return data
+
+def remake(data):
+    ppp=defaultdict(list)
+    
+    for row in data:
+        param1, param2 = row[0], row[1]
+        ppp[(param1, param2)].append(row)
+    return ppp
+ 
+# SQLite数据库准备
+conn = sqlite3.connect("structures.db")
+cursor = conn.cursor()
+# 重置数据库
+cursor.execute("DELETE FROM structures;")
+cursor.execute("DELETE FROM sqlite_sequence WHERE name='structures';")
 
 #"SiO2 (Glass) - Palik"
 # lumapi接口准备 
@@ -68,16 +83,29 @@ for row in unclusteredParameterPet:
     param1, param2 = row[0], row[1]
     parameterPet[(param1, param2)].append(row)
 
-tic=time.time()
 if __name__ == "__main__":
     init = [0.532e-6, 0.800e-6]  # 输入数据
     
     with multiprocessing.Pool(processes=2) as pool:
-        data = pool.map(simulation, init)  # 将每个输入元素传给 simulation 函数并行执行
+        peta = pool.map(simulation, init)  # 将每个输入元素传给 simulation 函数并行执行
     
-    print(data)  # 输出并行计算结果
-toc=time.time()
+    print(peta)
+    data532=peta[0]
+    data800=peta[1]
+    data800=data800[:, -2:]
+    data=np.concatenate([data532,data800],axis=1)
+    print(data)
+    
+    counter=0
+    for key, value in data.items():
+        counter+=1
+        for parameter in value:
+            p,h,l,w,r,a532,t532,a800,t800=parameter[0],parameter[1],parameter[2],parameter[3],parameter[4],parameter[5],parameter[6],parameter[7],parameter[8]
+    
+            cursor.execute("""
+            INSERT INTO structures (baseValue, P, H, L, W, R, angleIn532, transIn532, angleIn800, transIn800)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (int(counter), p, h, l, w, r, a532, t532, a800, t800))
 
-tim=toc-tic
-
-print(f"并行法{tim}秒")
+conn.commit()
+conn.close()
