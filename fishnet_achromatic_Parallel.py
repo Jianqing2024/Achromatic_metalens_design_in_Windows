@@ -4,8 +4,9 @@ from MetaSet import advancedStructure as adv
 import MetaSet as ms
 import importlib.util
 import sqlite3
-import time
 import multiprocessing
+
+print("扫参已启动")
 
 def simulation(wav):
     fdtd=lumapi.FDTD(hide=True)
@@ -50,10 +51,6 @@ def remake(data):
 # SQLite数据库准备
 conn = sqlite3.connect("structures.db")
 cursor = conn.cursor()
-# 重置数据库
-cursor.execute("DELETE FROM structures;")
-cursor.execute("DELETE FROM sqlite_sequence WHERE name='structures';")
-
 #"SiO2 (Glass) - Palik"
 # lumapi接口准备 
 spec = importlib.util.spec_from_file_location("lumapi", "D:\\Program Files\\Lumerical\\v241\\api\\python\\lumapi.py")
@@ -89,23 +86,28 @@ if __name__ == "__main__":
     with multiprocessing.Pool(processes=2) as pool:
         peta = pool.map(simulation, init)  # 将每个输入元素传给 simulation 函数并行执行
     
-    print(peta)
     data532=peta[0]
     data800=peta[1]
     data800=data800[:, -2:]
     data=np.concatenate([data532,data800],axis=1)
-    print(data)
+    
+    datapet = defaultdict(list)
+    
+    for row in data:
+        param1, param2 = row[0], row[1]
+        datapet[(param1, param2)].append(row)
     
     counter=0
-    for key, value in data.items():
+    for key, value in datapet.items():
         counter+=1
+        baseValue=int(counter)
         for parameter in value:
             p,h,l,w,r,a532,t532,a800,t800=parameter[0],parameter[1],parameter[2],parameter[3],parameter[4],parameter[5],parameter[6],parameter[7],parameter[8]
     
             cursor.execute("""
             INSERT INTO structures (baseValue, P, H, L, W, R, angleIn532, transIn532, angleIn800, transIn800)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, (int(counter), p, h, l, w, r, a532, t532, a800, t800))
-
-conn.commit()
-conn.close()
+            """, (baseValue, p, h, l, w, r, a532, t532, a800, t800))
+            
+    conn.commit()
+    conn.close()
