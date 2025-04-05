@@ -25,6 +25,7 @@ L=np.linspace(0.04e-6,0.4e-6,2)
 W=np.linspace(0.04e-6,0.4e-6,2)
 R=np.linspace(0.04e-6,0.18e-6,2)
 
+
 unclusteredParameterPet = np.full((0, 5), np.nan)
 for p in P:
     for h in H:

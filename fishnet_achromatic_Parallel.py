@@ -8,6 +8,7 @@ import multiprocessing
 
 print("扫参已启动")
 
+
 def simulation(wav):
     fdtd=lumapi.FDTD(hide=True)
 

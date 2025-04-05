@@ -18,6 +18,7 @@ def wrap_to_pi(angles):
 
 R=np.array([0.5e-3])
 f=np.array([3e-3])
+waveLength=np.array([0.532e-6,0.800e-6])
 
 conn = sqlite3.connect("structures.db")
 cursor = conn.cursor()
@@ -25,49 +26,33 @@ cursor = conn.cursor()
 cursor.execute("SELECT DISTINCT baseValue FROM structures ORDER BY baseValue")
 base_values = cursor.fetchall()
 
-for (base_val,) in base_values:
+Fit=np.zeros((len(base_values)))
+for dx, (base_val,) in enumerate(base_values):
     query="SELECT * FROM structures WHERE baseValue = ?"
     cursor.execute(query, (base_val,))
     rows=cursor.fetchall()
+    
+    angle=np.zeros((waveLength.size,len(rows)))
+    for idx, row in enumerate(rows):
+            angle[0,idx],angle[1,idx]=row[7],row[9]
+            
     single=rows[0][2]
-    x=create_matrix(R, single)
-    phi=hyperbolic_phase(x, np.array([0.532e-6]), f)
-    phi=wrap_to_pi(phi)
-    print(phi)
-    for row in rows:
-        print("++++++")
+    X=create_matrix(R, single)
+    
+    targetPhi = np.zeros((waveLength.size,X.size))
+    for idx, wav in enumerate(waveLength):
+        targetPhi[idx,:]=wrap_to_pi(hyperbolic_phase(X, wav, f))
+    
+    diff=np.zeros((len(rows)))
+    Interpolation=np.zeros((X.size))
+    for idx, Tphi in enumerate(targetPhi.T):
+        for jdx, Ang in enumerate(angle.T):
+            diff[jdx]=np.sum(np.abs(Tphi-Ang))
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+        Interpolation[idx] = diff[np.argmin(diff)]
+    
+    Fit[dx]=np.sum(Interpolation)
+        
 
 
 
