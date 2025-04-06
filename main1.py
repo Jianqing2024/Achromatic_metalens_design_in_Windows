@@ -5,17 +5,28 @@ import MetaSet as ms
 import importlib.util
 import sqlite3
 import multiprocessing
+from tqdm import tqdm
 
-print("扫参已启动")
+# lumapi接口准备 
+spec = importlib.util.spec_from_file_location("lumapi", "D:\\Program Files\\Lumerical\\v241\\api\\python\\lumapi.py")
+lumapi = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(lumapi) 
 
-
-def simulation(wav):
+def simulations(wav,parameterPet):
+    if wav==0.532e-6:
+        pos=1
+    elif wav==0.800e-6:
+        pos=2
+        
     fdtd=lumapi.FDTD(hide=True)
 
     fdtd.save(f"s{int(wav*1e9)}.fsp")
     
     data = np.empty((0, 7))
-
+    
+    num = sum(len(v) for v in parameterPet.values())
+    pbar = tqdm(total=num, desc=f"波长 {wav*1e9:.0f} nm", position=pos)
+    #for key, value in tqdm.tqdm(parameterPet.items(), desc=f"波长 {wav*1e9:.0f} nm 扫参"):
     for key, value in parameterPet.items():
         p,h=key[0],key[1]
         ms.setMetaFdtd(fdtd, p, p, 1e-6, -0.5e-6)
@@ -37,8 +48,12 @@ def simulation(wav):
             fdtd.switchtolayout()
             fdtd.select("Group")
             fdtd.delete()
+            
+            pbar.update(1)
 
         fdtd.deleteall()
+    
+    pbar.close()
     return data
 
 def remake(data):
@@ -48,44 +63,43 @@ def remake(data):
         param1, param2 = row[0], row[1]
         ppp[(param1, param2)].append(row)
     return ppp
- 
-# SQLite数据库准备
-conn = sqlite3.connect("structures.db")
-cursor = conn.cursor()
-#"SiO2 (Glass) - Palik"
-# lumapi接口准备 
-spec = importlib.util.spec_from_file_location("lumapi", "D:\\Program Files\\Lumerical\\v241\\api\\python\\lumapi.py")
-lumapi = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(lumapi) 
-
-# 计算参数
-P=np.linspace(0.2e-6,0.5e-6,2)
-H=np.linspace(0.2e-6,0.8e-6,2)
-L=np.linspace(0.04e-6,0.4e-6,2)
-W=np.linspace(0.04e-6,0.4e-6,2)
-R=np.linspace(0.04e-6,0.18e-6,2)
-
-unclusteredParameterPet = np.full((0, 5), np.nan)
-for p in P:
-    for h in H:
-        for l in L:
-            if l <= p:
-                for w in W:
-                    for r in R:
-                        if w <= 2 * r and 2 * r < p:
-                            unclusteredParameterPet = np.vstack([unclusteredParameterPet, np.array([p, h, l, w, r])])
-
-parameterPet = defaultdict(list)
-    
-for row in unclusteredParameterPet:
-    param1, param2 = row[0], row[1]
-    parameterPet[(param1, param2)].append(row)
 
 if __name__ == "__main__":
-    init = [0.532e-6, 0.800e-6]  # 输入数据
+    print("扫参已启动")
+    # SQLite数据库准备
+    conn = sqlite3.connect("structures.db")
+    cursor = conn.cursor()
+#"SiO2 (Glass) - Palik"
+
+# 计算参数
+    P=np.linspace(0.2e-6,0.5e-6,4)
+    H=np.linspace(0.2e-6,0.8e-6,4)
+    L=np.linspace(0.04e-6,0.4e-6,4)
+    W=np.linspace(0.04e-6,0.4e-6,4)
+    R=np.linspace(0.04e-6,0.18e-6,4)
+
+    unclusteredParameterPet = np.full((0, 5), np.nan)
+    for p in P:
+        for h in H:
+            for l in L:
+                if l <= p:
+                    for w in W:
+                        for r in R:
+                            if w <= 2 * r and 2 * r < p:
+                                unclusteredParameterPet = np.vstack([unclusteredParameterPet, np.array([p, h, l, w, r])])
+
+    print(unclusteredParameterPet.shape[0])
+    
+    parameterPet = defaultdict(list)
+    
+    for row in unclusteredParameterPet:
+        param1, param2 = row[0], row[1]
+        parameterPet[(param1, param2)].append(row)
+
+    wavList = [0.532e-6, 0.800e-6]  # 输入数据
     
     with multiprocessing.Pool(processes=2) as pool:
-        peta = pool.map(simulation, init)  # 将每个输入元素传给 simulation 函数并行执行
+        peta = pool.starmap(simulations, [(wav,parameterPet) for wav in wavList])  # 将每个输入元素传给 simulation 函数并行执行
     
     data532=peta[0]
     data800=peta[1]
@@ -100,7 +114,7 @@ if __name__ == "__main__":
     
     counter=0
     for key, value in datapet.items():
-        counter+=1
+        counter+=13
         baseValue=int(counter)
         for parameter in value:
             p,h,l,w,r,a532,t532,a800,t800=parameter[0],parameter[1],parameter[2],parameter[3],parameter[4],parameter[5],parameter[6],parameter[7],parameter[8]

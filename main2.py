@@ -1,6 +1,7 @@
 import sqlite3
 import numpy as np
 import optuna
+import time
 
 def hyperbolic_phase(r, wav, f):
     phi = -2 * np.pi / wav * (np.sqrt(r**2 + f**2) - f)
@@ -20,12 +21,16 @@ R=np.array([0.5e-3])
 f=np.array([3e-3])
 waveLength=np.array([0.532e-6,0.800e-6])
 
-conn = sqlite3.connect("structures.db")
+conn = sqlite3.connect("structures.db", isolation_level=None)
 cursor = conn.cursor()
+cursor.execute("PRAGMA synchronous = OFF")
+cursor.execute("PRAGMA journal_mode = MEMORY")
+
 
 cursor.execute("SELECT DISTINCT baseValue FROM structures ORDER BY baseValue")
 base_values = cursor.fetchall()
 
+tic=time.time()
 Fit=np.zeros((len(base_values)))
 for dx, (base_val,) in enumerate(base_values):
     query="SELECT * FROM structures WHERE baseValue = ?"
@@ -52,8 +57,10 @@ for dx, (base_val,) in enumerate(base_values):
         Interpolation[idx] = diff[np.argmin(diff)]
     
     Fit[dx]=np.sum(Interpolation)
-        
 
-
+toc=time.time()
+  
+print(Fit)
+print(f"{toc-tic}s")
 
 conn.close()
