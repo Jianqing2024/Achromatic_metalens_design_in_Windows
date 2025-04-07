@@ -14,3 +14,7 @@ def fishnetset(fdtd, material, h, l, w, r, *, name="newGroup"):
     addMetaCircle(fdtd, material, r, h, name="cie")
     fdtd.select("cie")
     fdtd.addtogroup(name)
+    
+def swichWaveLength(fdtd, wav, name):
+    fdtd.select(name)
+    fdtd.set("wavelength", wav)

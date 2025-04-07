@@ -69,14 +69,14 @@ if __name__ == "__main__":
     # SQLite数据库准备
     conn = sqlite3.connect("structures.db")
     cursor = conn.cursor()
-#"SiO2 (Glass) - Palik"
+    #"SiO2 (Glass) - Palik"
 
-# 计算参数
+    # 计算参数
     P=np.linspace(0.2e-6,0.5e-6,4)
     H=np.linspace(0.2e-6,0.8e-6,4)
-    L=np.linspace(0.04e-6,0.4e-6,4)
-    W=np.linspace(0.04e-6,0.4e-6,4)
-    R=np.linspace(0.04e-6,0.18e-6,4)
+    L=np.linspace(0.04e-6,0.4e-6,2)
+    W=np.linspace(0.04e-6,0.4e-6,3)
+    R=np.linspace(0.04e-6,0.18e-6,2)
 
     unclusteredParameterPet = np.full((0, 5), np.nan)
     for p in P:
@@ -114,7 +114,7 @@ if __name__ == "__main__":
     
     counter=0
     for key, value in datapet.items():
-        counter+=13
+        counter+=1
         baseValue=int(counter)
         for parameter in value:
             p,h,l,w,r,a532,t532,a800,t800=parameter[0],parameter[1],parameter[2],parameter[3],parameter[4],parameter[5],parameter[6],parameter[7],parameter[8]
