@@ -40,7 +40,7 @@ def split_matrix(matrix,num):
 
     return parts
 
-def simulation(parameter,part):
+def simulation(parameter,part,queue):
     
     fdtd=lumapi.FDTD(hide=True)
 
@@ -56,9 +56,11 @@ def simulation(parameter,part):
     num = sum(len(v) for v in parameterPet.values())
     
     pbar = tqdm(total=num, desc=f"进程 {int(part)} ", position=part)
-    #for key, value in tqdm.tqdm(parameterPet.items(), desc=f"波长 {wav*1e9:.0f} nm 扫参"):
     
     wav=[0.532e-6,0.800e-6]
+    sourceName='s'
+    groupName ='g'
+    material="SiO2 (Glass) - Palik"
     
     for key, value in parameterPet.items():
         p,h=key[0],key[1]
@@ -70,32 +72,55 @@ def simulation(parameter,part):
             w=parameter[3] # 十字结构宽度
             r=parameter[4] # 中心圆半径
             
-            adv.fishnetset(fdtd, "SiO2 (Glass) - Palik", h, l, w, r, name="Group")
+            adv.fishnetset(fdtd, material, h, l, w, r, name=groupName)
             
             main=np.array([[p,h,l,w,r]])
             
-            ms.addMetaSource(fdtd, p, p, -0.25e-6, wav[1], name="source")
+            ms.addMetaSource(fdtd, p, p, -0.25e-6, wav[0],name=sourceName)
             fdtd.run()
             data532 = ms.classicDataAcquisition(fdtd)
             fdtd.switchtolayout()
             
-            adv.swichWaveLength(fdtd, wav[0], "source")
+            adv.swichWaveLength(fdtd, wav[1], sourceName)
             fdtd.run()
             data800 = ms.classicDataAcquisition(fdtd)
             fdtd.switchtolayout()
+        
+            fdtd.select(sourceName)
+            fdtd.delete()
                     
             Analysis=np.concatenate((main, data532, data800),axis=1)
             data = np.concatenate((data, Analysis),axis=0)
-            fdtd.select("Group")
+            fdtd.select(groupName)
             fdtd.delete()
-            
             pbar.update(1)
 
         fdtd.deleteall()
         
     pbar.close()
-    print(data)
-    return data
+    queue.put(data)
+
+def main():
+    processes = []
+    queue = multiprocessing.Queue()  # 用于接收进程的返回数据
+
+    for i in range(parallelsNum):
+        iterations = parameter[i]
+        p = multiprocessing.Process(target=simulation, args=(iterations, i, queue))
+        processes.append(p)
+
+    for p in processes:
+        p.start()
+
+    for p in processes:
+        p.join()
+
+    # 获取每个进程的返回数据
+    results = []
+    while not queue.empty():
+        results.append(queue.get())  # 从队列中取出数据
+
+    return results
 
 if __name__ == "__main__":
     print("扫参正在启动")
@@ -107,10 +132,10 @@ if __name__ == "__main__":
     # 计算参数
     parallelsNum=2
     
-    P=np.linspace(0.2e-6,0.5e-6,4)
-    H=np.linspace(0.2e-6,0.8e-6,4)
+    P=np.linspace(0.2e-6,0.5e-6,2)
+    H=np.linspace(0.2e-6,0.8e-6,2)
     L=np.linspace(0.04e-6,0.4e-6,2)
-    W=np.linspace(0.04e-6,0.4e-6,3)
+    W=np.linspace(0.04e-6,0.4e-6,2)
     R=np.linspace(0.04e-6,0.18e-6,2)
 
     allParameterPet = np.full((0, 5), np.nan)
@@ -125,14 +150,25 @@ if __name__ == "__main__":
                                 
     parameter=split_matrix(allParameterPet,parallelsNum)
     
-    processes = []
-    for i in range(parallelsNum):
-        iterations=parameter[i]
-        p = multiprocessing.Process(target=simulation, args=(iterations,i)) # iterations为此次并行进程中使用的参数，i为进程id
-        processes.append(p)
-        
-    for p in processes:
-        p.start()
+    results = main()
+    middle_result=np.concatenate(results, axis=0)
+    
+    final_result=defaultdict(list)
+    
+    for row in middle_result:
+        param1, param2 = row[0], row[1]
+        final_result[(param1, param2)].append(row)
+          
+    counter=0
+    for key, value in final_result.items():
+        counter+=1
+        for pa in value:
+            p,h,l,w,r,a532,t532,a800,t800=pa[0],pa[1],pa[2],pa[3],pa[4],pa[5],pa[6],pa[7],pa[8]
             
-    for p in processes:
-        p.join()
+            cursor.execute("""
+            INSERT INTO structures (baseValue, P, H, L, W, R, angleIn532, transIn532, angleIn800, transIn800)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (int(counter), p, h, l, w, r, a532, t532, a800, t800))
+            
+    conn.commit()
+    conn.close()
