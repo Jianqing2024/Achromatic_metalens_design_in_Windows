@@ -180,3 +180,10 @@ plt.tight_layout()
 plt.show()
 
 eng = matlab.engine.start_matlab()
+print("matlab引擎启动")
+E532,E800 = eng.Phase_map_generation(structure_array, nargout=2)
+print(E532)
+print(E800)
+
+# 关闭 MATLAB 引擎
+eng.quit()

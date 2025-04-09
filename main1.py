@@ -138,13 +138,13 @@ if __name__ == "__main__":
     #"SiO2 (Glass) - Palik"
 
     # 计算参数
-    parallelsNum=4
+    parallelsNum=2
     
-    P=np.linspace(0.2e-6,0.5e-6,4)
-    H=np.linspace(0.2e-6,0.8e-6,4)
-    L=np.linspace(0.04e-6,0.4e-6,4)
-    W=np.linspace(0.04e-6,0.4e-6,4)
-    R=np.linspace(0.04e-6,0.18e-6,4)
+    P=np.linspace(0.2e-6,0.5e-6,2)
+    H=np.linspace(0.2e-6,0.8e-6,2)
+    L=np.linspace(0.04e-6,0.4e-6,2)
+    W=np.linspace(0.04e-6,0.4e-6,2)
+    R=np.linspace(0.04e-6,0.18e-6,2)
 
     allParameterPet = np.full((0, 5), np.nan)
     for p in P:

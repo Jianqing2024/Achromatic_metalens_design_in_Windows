@@ -1,8 +1,4 @@
-clear;clc
-array=randi(100,100);
-[E532,E800]=function1(array);
-
-function [E532,E800]=function1(array)
+function [E532,E800]=Phase_map_generation(array)
 dbFile = 'structures.db';
 conn = sqlite(dbFile, 'readonly');
 
