@@ -7,4 +7,5 @@ cursor.execute("DELETE FROM structures;")
 cursor.execute("DELETE FROM sqlite_sequence WHERE name='structures';")
 
 conn.commit()
+print("数据库清理完成")
 conn.close()

@@ -120,9 +120,11 @@ def function2(shift0,shift1,shift2,baseValue):
     rows=cursor.fetchall()
     
     angle=np.zeros((waveLength.size,len(rows)))
+    index=np.zeros(len(rows))
     for idx, row in enumerate(rows):
         angle[0,idx],angle[1,idx]=row[7],row[9]
-            
+        index[idx]=row[0]
+    
     X=create_matrix(R, single)
     
     targetPhi = np.zeros((waveLength.size,X.size))
@@ -131,12 +133,13 @@ def function2(shift0,shift1,shift2,baseValue):
         targetPhi[idx,:]=wrap_to_pi(hyperbolic_phase(X, wav, f, shift[idx]))
     
     diff=np.zeros((len(rows)))
-    bestIdx=np.zeros((X.size))
+    bestIdx=np.zeros(X.size)
     for idx, Tphi in enumerate(targetPhi.T):
         for jdx, Ang in enumerate(angle.T):
             diff[jdx]=np.sum(np.abs(Tphi-Ang))
 
-        bestIdx[idx] = np.argmin(diff)
+        best = np.argmin(diff)
+        bestIdx[idx]=index[best]
 
     conn.close()
     return X,bestIdx
@@ -161,9 +164,6 @@ pitch=rows[0][2]
 
 structure_array, R_array=build_structure_array(X, bestIdx, shape=(100, 100), pitch=pitch, center=None)
 
-print(structure_array)
-print(R_array)
-
 fig, axs = plt.subplots(1, 2, figsize=(12, 5))
 
 im1 = axs[0].imshow(structure_array, cmap='tab20')
@@ -179,11 +179,13 @@ fig.colorbar(im2, ax=axs[1])
 plt.tight_layout()
 plt.show()
 
+print("正在进入matlab引擎")
+
 eng = matlab.engine.start_matlab()
+
 print("matlab引擎启动")
-E532,E800 = eng.Phase_map_generation(structure_array, nargout=2)
+E532,E800 = eng.Far_field_simulation(structure_array, nargout=2)
 print(E532)
 print(E800)
 
-# 关闭 MATLAB 引擎
 eng.quit()
