@@ -40,10 +40,9 @@ def split_matrix(matrix,num):
         start += size
 
     return parts
-
 def simulation(parameter,part,queue):
     
-    fdtd=lumapi.FDTD(hide=True)
+    fdtd=lumapi.FDTD(hide=False)
 
     fdtd.save(f"s{int(part)}.fsp")
     
@@ -61,20 +60,21 @@ def simulation(parameter,part,queue):
     wav=[0.532e-6,0.800e-6]
     sourceName='s'
     groupName ='g'
-    material="SiO2 (Glass) - Palik"
+    material1="SiO2 (Glass) - Palik"
+    material2="TiO2 (Titanium Dioxide) - Devore"
     c=0
     
     for key, value in parameterPet.items():
         p,h=key[0],key[1]
         ms.setMetaFdtd(fdtd, p, p, 1e-6, -0.5e-6)
         ms.classicMonitorGroup(fdtd, p, p, 1e-6)
-        ms.addMetaBase(fdtd, "SiO2 (Glass) - Palik", p, p, 0.5e-6)
+        ms.addMetaBase(fdtd, material1, p, p, 0.5e-6)
         for parameter in value:
             l=parameter[2] # 十字结构长度
             w=parameter[3] # 十字结构宽度
             r=parameter[4] # 中心圆半径
             
-            adv.fishnetset(fdtd, material, h, l, w, r, name=groupName)
+            adv.fishnetset(fdtd, material2, h, l, w, r, name=groupName)
             
             main=np.array([[p,h,l,w,r]])
             
@@ -104,7 +104,6 @@ def simulation(parameter,part,queue):
     queue.put(data)
     print(f"[{part}] put completed.")
     fdtd.close()
-
 def main():
     processes = []
     queue = multiprocessing.Queue()
@@ -138,13 +137,13 @@ if __name__ == "__main__":
     #"SiO2 (Glass) - Palik"
 
     # 计算参数
-    parallelsNum=2
+    parallelsNum=4
     
-    P=np.linspace(0.2e-6,0.5e-6,2)
-    H=np.linspace(0.2e-6,0.8e-6,2)
-    L=np.linspace(0.04e-6,0.4e-6,2)
-    W=np.linspace(0.04e-6,0.4e-6,2)
-    R=np.linspace(0.04e-6,0.18e-6,2)
+    P=np.linspace(0.2e-6,0.5e-6,4)
+    H=np.linspace(0.6e-6,0.8e-6,4)
+    L=np.linspace(0.04e-6,0.5e-6,20)
+    W=np.linspace(0.04e-6,0.4e-6,20)
+    R=np.linspace(0.04e-6,0.18e-6,20)
 
     allParameterPet = np.full((0, 5), np.nan)
     for p in P:
@@ -152,12 +151,11 @@ if __name__ == "__main__":
             for l in L:
                 if l <= p:
                     for w in W:
-                        for r in R:
-                            if w <= 2 * r and 2 * r < p:
-                                allParameterPet = np.vstack([allParameterPet, np.array([p, h, l, w, r])])
-                                
+                        if w < l:
+                            for r in R:
+                                if w <= 2 * r :
+                                    allParameterPet = np.vstack([allParameterPet, np.array([p, h, l, w, r])])               
     parameter=split_matrix(allParameterPet,parallelsNum)
-    
     results = main()
     middle_result=np.concatenate(results, axis=0)
     print("完全退出并行")

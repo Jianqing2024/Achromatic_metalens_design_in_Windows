@@ -19,8 +19,7 @@ def create_matrix(R, single):
 def wrap_to_pi(angles):
     return (angles + np.pi) % (2 * np.pi) - np.pi
 def function1(shift0,shift1,shift2):
-    R=np.array([0.5e-3])
-    f=np.array([3e-3])+shift2
+    f=f0+shift2
 
     waveLength=np.array([0.532e-6,0.800e-6])
 
@@ -106,8 +105,7 @@ def build_structure_array(R_samples, structure_ids, shape=(100, 100), pitch=0.5,
 
     return structure_array, R_array
 def function2(shift0,shift1,shift2,baseValue):
-    R=np.array([0.5e-3])
-    f=np.array([3e-3])+shift2
+    f=f0+shift2
     single=2e-6
 
     waveLength=np.array([0.532e-6,0.800e-6])
@@ -143,6 +141,16 @@ def function2(shift0,shift1,shift2,baseValue):
 
     conn.close()
     return X,bestIdx
+def read_R_f(filename):
+    with open(filename, 'r') as f:
+        lines = f.readlines()
+
+    R = np.float64(lines[0].split('=')[1])
+    f = np.float64(lines[1].split('=')[1])
+    return R, f
+
+R,f0=read_R_f("parameter.txt")
+print(f"参数确认:R={R},f0={f0}")
 
 study = optuna.create_study(direction="minimize")
 study.optimize(objective, n_trials=3)
