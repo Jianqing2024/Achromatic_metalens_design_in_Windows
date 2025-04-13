@@ -67,7 +67,7 @@ def function1(shift0,shift1,shift2):
 def objective(trial):
     shift0 = trial.suggest_float("shift0", -np.pi, np.pi)
     shift1 = trial.suggest_float("shift1", -np.pi, np.pi)
-    shift2 = trial.suggest_float("shift2", -0.05e-3, 0.05e-3)
+    shift2 = trial.suggest_float("shift2", -1e-3, 1.25e-3)
     result1, result2 = function1(shift0,shift1,shift2)
 
     return result1

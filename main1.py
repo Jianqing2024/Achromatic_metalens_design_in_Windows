@@ -41,8 +41,7 @@ def split_matrix(matrix,num):
 
     return parts
 def simulation(parameter,part,queue):
-    
-    fdtd=lumapi.FDTD(hide=False)
+    fdtd=lumapi.FDTD(hide=True)
 
     fdtd.save(f"s{int(part)}.fsp")
     
