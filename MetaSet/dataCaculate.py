@@ -14,5 +14,5 @@ def classicDataAcquisition(fdtd):
     T=fdtd.transmission("plane")
     T=np.float64(T)
     Ex_angle=Ex_angle[0,0,0,0]
-    data=np.array([Ex_angle, T])
+    data=np.array([[Ex_angle, T]])
     return data

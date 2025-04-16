@@ -17,4 +17,5 @@ def fishnetset(fdtd, material, h, l, w, r, *, name="newGroup"):
     
 def swichWaveLength(fdtd, wav, name):
     fdtd.select(name)
-    fdtd.set("wavelength", wav)
+    fdtd.set("wavelength start", wav)
+    fdtd.set("wavelength stop", wav)

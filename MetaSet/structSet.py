@@ -70,7 +70,7 @@ def addMetaSource(fdtd, size_x, size_y, z, wavelength, *, name="source"):
     fdtd.set("wavelength start", wavelength)
     fdtd.set("wavelength stop", wavelength)
     
-    fdtd.set("name","source")
+    fdtd.set("name",name)
     
 def classicMonitorGroup(fdtd, size_x, size_y, z):
     """建立一个经典监视器组，包括两个频域能量监视器，

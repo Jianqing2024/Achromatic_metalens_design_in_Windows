@@ -46,8 +46,8 @@ def simulation(parameter,part):
 
     fdtd.save(f"s{int(part)}.fsp")
     
-    data = np.empty((0, 7))
-    
+    data = np.empty((0, 9))
+
     parameterPet=defaultdict(list)
     for row in parameter:
         param1, param2 = row[0], row[1]
@@ -64,7 +64,6 @@ def simulation(parameter,part):
         p,h=key[0],key[1]
         ms.setMetaFdtd(fdtd, p, p, 1e-6, -0.5e-6)
         ms.classicMonitorGroup(fdtd, p, p, 1e-6)
-        ms.addMetaSource(fdtd, p, p, -0.25e-6, wav[0])
         ms.addMetaBase(fdtd, "SiO2 (Glass) - Palik", p, p, 0.5e-6)
         for parameter in value:
             l=parameter[2] # 十字结构长度
@@ -73,26 +72,30 @@ def simulation(parameter,part):
             
             adv.fishnetset(fdtd, "SiO2 (Glass) - Palik", h, l, w, r, name="Group")
             
+            main=np.array([[p,h,l,w,r]])
+            
+            ms.addMetaSource(fdtd, p, p, -0.25e-6, wav[1], name="source")
             fdtd.run()
-            main=np.array([p,h,l,w,r])
-            da = ms.classicDataAcquisition(fdtd)
-            da = np.concatenate((main, da),axis=0)
-            data = np.vstack([data,da]) 
+            data532 = ms.classicDataAcquisition(fdtd)
             fdtd.switchtolayout()
             
-            # 这里要改数据处理，然后捋一下关于波长的实现方式
-            
+            adv.swichWaveLength(fdtd, wav[0], "source")
+            fdtd.run()
+            data800 = ms.classicDataAcquisition(fdtd)
+            fdtd.switchtolayout()
+                    
+            Analysis=np.concatenate((main, data532, data800),axis=1)
+            data = np.concatenate((data, Analysis),axis=0)
             fdtd.select("Group")
             fdtd.delete()
             
-    
+            pbar.update(1)
 
         fdtd.deleteall()
         
-    pbar.update(1)
     pbar.close()
+    print(data)
     return data
-
 
 if __name__ == "__main__":
     print("扫参正在启动")
@@ -102,7 +105,7 @@ if __name__ == "__main__":
     #"SiO2 (Glass) - Palik"
 
     # 计算参数
-    parallelsNum=4
+    parallelsNum=2
     
     P=np.linspace(0.2e-6,0.5e-6,4)
     H=np.linspace(0.2e-6,0.8e-6,4)
