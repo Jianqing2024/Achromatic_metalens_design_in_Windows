@@ -4,6 +4,7 @@ from time import time
 import sqlite3
 import matplotlib.pyplot as plt
 import matlab.engine
+import os
 
 def hyperbolic_phase(r, wav, f, shift):
     phi = -2 * np.pi / wav * (np.sqrt(r**2 + f**2) - f)+shift
@@ -19,11 +20,18 @@ def create_matrix(R, single):
 def wrap_to_pi(angles):
     return (angles + np.pi) % (2 * np.pi) - np.pi
 def function1(shift0,shift1,shift2):
+    R,f0=read_R_f()
     f=f0+shift2
 
     waveLength=np.array([0.532e-6,0.800e-6])
 
-    conn = sqlite3.connect("structures.db", isolation_level=None)
+    # 获取当前文件所在脚本的上一级（主目录）路径
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+    DATA_DIR = os.path.join(BASE_DIR, '..', 'data')  # 如果当前脚本在子项目中
+    DB_PATH = os.path.join(DATA_DIR, 'structures.db')
+
+    # 连接数据库
+    conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     cursor.execute("PRAGMA synchronous = OFF")
     cursor.execute("PRAGMA journal_mode = MEMORY")
@@ -60,10 +68,11 @@ def function1(shift0,shift1,shift2):
         Fit[dx]=np.sum(Interpolation)
         
     bestFit = np.min(Fit)
+
     bestIdx = np.argmin(Fit)
 
     conn.close()
-    return bestFit,bestIdx
+    return bestFit,(bestIdx+1)
 def objective(trial):
     shift0 = trial.suggest_float("shift0", -np.pi, np.pi)
     shift1 = trial.suggest_float("shift1", -np.pi, np.pi)
@@ -105,17 +114,24 @@ def build_structure_array(R_samples, structure_ids, shape=(100, 100), pitch=0.5,
 
     return structure_array, R_array
 def function2(shift0,shift1,shift2,baseValue):
+    R,f0=read_R_f()
     f=f0+shift2
     single=2e-6
 
     waveLength=np.array([0.532e-6,0.800e-6])
+    # 获取当前文件所在脚本的上一级（主目录）路径
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+    DATA_DIR = os.path.join(BASE_DIR, '..', 'data')  # 如果当前脚本在子项目中
+    DB_PATH = os.path.join(DATA_DIR, 'structures.db')
 
-    conn = sqlite3.connect("structures.db", isolation_level=None)
+    # 连接数据库
+    conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
 
     query="SELECT * FROM structures WHERE baseValue = ?"
     cursor.execute(query, (baseValue,))
     rows=cursor.fetchall()
+    print(rows)
     
     angle=np.zeros((waveLength.size,len(rows)))
     index=np.zeros(len(rows))
@@ -141,7 +157,13 @@ def function2(shift0,shift1,shift2,baseValue):
 
     conn.close()
     return X,bestIdx
-def read_R_f(filename):
+def read_R_f():
+    # 获取当前脚本所在目录（如 your_script.py）
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+
+    # 构建指向 data 文件夹中参数文件的路径
+    filename = os.path.join(current_dir, '..', 'data', 'parameter.txt')
+
     with open(filename, 'r') as f:
         lines = f.readlines()
 
@@ -149,51 +171,65 @@ def read_R_f(filename):
     f = np.float64(lines[1].split('=')[1])
     return R, f
 
-R,f0=read_R_f("parameter.txt")
-print(f"参数确认:R={R},f0={f0}")
+def mainFunction2():
+    R,f0=read_R_f()
+    print(f"参数确认:R={R},f0={f0}")
 
-study = optuna.create_study(direction="minimize")
-study.optimize(objective, n_trials=3)
+    study = optuna.create_study(direction="minimize")
+    study.optimize(objective, n_trials=3)
 
-bestEnd,bestBaseValue=function1(**study.best_params)
+    bestEnd,bestBaseValue=function1(**study.best_params)
+    print(bestBaseValue)
 
-shift0,shift1,shift2, = study.best_params.values()
+    shift0,shift1,shift2, = study.best_params.values()
 
-X,bestIdx=function2(shift0,shift1,shift2,int(bestBaseValue))
+    X,bestIdx=function2(shift0,shift1,shift2,int(bestBaseValue))
 
-conn = sqlite3.connect("structures.db", isolation_level=None)
-cursor = conn.cursor()
+    # 获取当前文件所在脚本的上一级（主目录）路径
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+    DATA_DIR = os.path.join(BASE_DIR, '..', 'data')  # 如果当前脚本在子项目中
+    DB_PATH = os.path.join(DATA_DIR, 'structures.db')
 
-query="SELECT * FROM structures WHERE baseValue = ?"
-cursor.execute(query, (int(bestBaseValue),))
-rows=cursor.fetchall()
-conn.close()
-pitch=rows[0][2]
+    # 连接数据库
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
 
-structure_array, R_array=build_structure_array(X, bestIdx, shape=(100, 100), pitch=pitch, center=None)
+    query="SELECT * FROM structures WHERE baseValue = ?"
+    cursor.execute(query, (int(bestBaseValue),))
+    rows=cursor.fetchall()
+    conn.close()
+    pitch=rows[0][2]
 
-fig, axs = plt.subplots(1, 2, figsize=(12, 5))
+    structure_array, R_array=build_structure_array(X, bestIdx, shape=(100, 100), pitch=pitch, center=None)
 
-im1 = axs[0].imshow(structure_array, cmap='tab20')
-axs[0].set_title("Structure ID")
-axs[0].axis('off')
-fig.colorbar(im1, ax=axs[0])
+    fig, axs = plt.subplots(1, 2, figsize=(12, 5))
 
-im2 = axs[1].imshow(R_array, cmap='viridis')
-axs[1].set_title("R Value")
-axs[1].axis('off')
-fig.colorbar(im2, ax=axs[1])
+    im1 = axs[0].imshow(structure_array, cmap='tab20')
+    axs[0].set_title("Structure ID")
+    axs[0].axis('off')
+    fig.colorbar(im1, ax=axs[0])
 
-plt.tight_layout()
-plt.show()
+    im2 = axs[1].imshow(R_array, cmap='viridis')
+    axs[1].set_title("R Value")
+    axs[1].axis('off')
+    fig.colorbar(im2, ax=axs[1])
 
-print("正在进入matlab引擎")
+    plt.tight_layout()
+    plt.show()
 
-eng = matlab.engine.start_matlab()
+    print("正在进入matlab引擎")
 
-print("matlab引擎启动")
-E532,E800 = eng.Far_field_simulation(structure_array, nargout=2)
-print(E532)
-print(E800)
+    eng = matlab.engine.start_matlab()
 
-eng.quit()
+    # 2. 拼接 matlabFuncs 文件夹路径
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+    MATLAB_FUNC_DIR = os.path.join(BASE_DIR, 'matlabFuncs')
+
+    # 3. 添加路径
+    eng.addpath(MATLAB_FUNC_DIR, nargout=0)
+
+    E532, E800 = eng.Far_field_simulation(structure_array, nargout=2)
+    print(E532)
+    print(E800)
+
+    eng.quit()

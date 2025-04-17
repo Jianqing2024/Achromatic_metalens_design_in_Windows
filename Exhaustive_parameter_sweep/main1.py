@@ -5,9 +5,9 @@ import MetaSet as ms
 import importlib.util
 import sqlite3
 import multiprocessing
-from tqdm import tqdm
 from time import time
 import importlib.util
+import os
 
 # 全局加载 lumapi 模块
 spec = importlib.util.spec_from_file_location("lumapi", "D:\\Program Files\\Lumerical\\v241\\api\\python\\lumapi.py")
@@ -128,56 +128,63 @@ def main(parallelsNum,parameter):
     return results
 
 def mainFunction1():
-    if __name__ == "__main__":
-        tic=time()
+    tic=time()
         
-        print("扫参正在启动")
-        # SQLite数据库准备
-        conn = sqlite3.connect("structures.db")
-        cursor = conn.cursor()
-        #"SiO2 (Glass) - Palik"
+    print("扫参正在启动")
+    # 获取当前文件所在脚本的上一级（主目录）路径
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+    DATA_DIR = os.path.join(BASE_DIR, '..', 'data')  # 如果当前脚本在子项目中
+    DB_PATH = os.path.join(DATA_DIR, 'structures.db')
 
-        # 计算参数
-        parallelsNum=2
-        
-        P=np.linspace(0.2e-6,0.5e-6,2)
-        H=np.linspace(0.6e-6,0.8e-6,2)
-        L=np.linspace(0.04e-6,0.5e-6,2)
-        W=np.linspace(0.04e-6,0.4e-6,2)
-        R=np.linspace(0.04e-6,0.18e-6,2)
+    # 连接数据库
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+    #"SiO2 (Glass) - Palik"
 
-        allParameterPet = np.full((0, 5), np.nan)
-        for p in P:
-            for h in H:
-                for l in L:
-                    if l <= p:
-                        for w in W:
-                            if w < l:
-                                for r in R:
-                                    if w <= 2 * r :
-                                        allParameterPet = np.vstack([allParameterPet, np.array([p, h, l, w, r])])               
-        parameter=split_matrix(allParameterPet,parallelsNum)
-        results = main(parallelsNum, parameter)
-        middle_result=np.concatenate(results, axis=0)
-        print("完全退出并行")
-        final_result=defaultdict(list)
+    # 计算参数
+    parallelsNum=2
         
-        for row in middle_result:
-            param1, param2 = row[0], row[1]
-            final_result[(param1, param2)].append(row)
+    P=np.linspace(0.2e-6,0.5e-6,2)
+    H=np.linspace(0.6e-6,0.8e-6,2)
+    L=np.linspace(0.04e-6,0.5e-6,2)
+    W=np.linspace(0.04e-6,0.4e-6,2)
+    R=np.linspace(0.04e-6,0.18e-6,2)
+
+    allParameterPet = np.full((0, 5), np.nan)
+    for p in P:
+        for h in H:
+            for l in L:
+                if l <= p:
+                    for w in W:
+                        if w < l:
+                            for r in R:
+                                if w <= 2 * r :
+                                    allParameterPet = np.vstack([allParameterPet, np.array([p, h, l, w, r])])               
+    parameter=split_matrix(allParameterPet,parallelsNum)
+    results = main(parallelsNum, parameter)
+    middle_result=np.concatenate(results, axis=0)
+    print("完全退出并行")
+    final_result=defaultdict(list)
+        
+    for row in middle_result:
+        param1, param2 = row[0], row[1]
+        final_result[(param1, param2)].append(row)
             
-        counter=0
-        for key, value in final_result.items():
-            counter+=1
-            for pa in value:
-                p,h,l,w,r,a532,t532,a800,t800=pa[0],pa[1],pa[2],pa[3],pa[4],pa[5],pa[6],pa[7],pa[8]
+    counter=0
+    for key, value in final_result.items():
+        counter+=1
+        for pa in value:
+            p,h,l,w,r,a532,t532,a800,t800=pa[0],pa[1],pa[2],pa[3],pa[4],pa[5],pa[6],pa[7],pa[8]
                 
-                cursor.execute("""
-                INSERT INTO structures (baseValue, P, H, L, W, R, angleIn532, transIn532, angleIn800, transIn800)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """, (int(counter), p, h, l, w, r, a532, t532, a800, t800))
+            cursor.execute("""
+            INSERT INTO structures (baseValue, P, H, L, W, R, angleIn532, transIn532, angleIn800, transIn800)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (int(counter), p, h, l, w, r, a532, t532, a800, t800))
                 
-        conn.commit()
-        conn.close()
-        toc=time()
-        print(f'{toc-tic}s')
+    conn.commit()
+    conn.close()
+    toc=time()
+    print(f'{toc-tic}s')
+        
+if __name__ == "__main__":
+    mainFunction1()

@@ -1,3 +1,4 @@
 from Exhaustive_parameter_sweep import main
 
-main.main_for_EPS()
+if __name__ == "__main__":
+    main.main_for_EPS()

@@ -1,5 +1,18 @@
 function [U532,U800]=Far_field_simulation(array)
-dbFile = 'structures.db';
+
+thisFile = mfilename('fullpath');
+[currentDir, ~, ~] = fileparts(thisFile);         % 当前脚本文件夹路径
+[parentDir, ~, ~] = fileparts(currentDir);        % 上一级
+[grandParentDir, ~, ~] = fileparts(parentDir);    % 上上级
+
+% 拼接上上级路径下的 data 文件夹
+dataDir = fullfile(grandParentDir, 'data');
+
+    
+% 构造完整数据库路径
+dbFile = fullfile(dataDir, 'structures.db');
+    
+% 以只读方式连接数据库
 conn = sqlite(dbFile, 'readonly');
 
 [sizeX,sizeY]=size(array);
@@ -8,7 +21,7 @@ Phi532=zeros(sizeX,sizeY);
 Phi800=zeros(sizeX,sizeY);
 for i=1:sizeX
     for j=1:sizeY
-        ID=array(i,j);
+        ID=int16(array(i,j));
         query=sprintf('SELECT %s, %s FROM structures WHERE id = %d', "angleIn532", "angleIn800", ID);
         data=fetch(conn,query);
         data=table2array(data);
