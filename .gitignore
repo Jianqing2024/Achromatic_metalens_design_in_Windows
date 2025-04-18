@@ -15,12 +15,16 @@ venv/
 # 忽略 VS Code 的工作区配置
 .vscode/
 
-# 忽略数据文件夹
-data/*
+# 忽略数据文件夹下的数据库文件，但保留 .py 文件
+data/*.db
+!data/*.py
 !data/.gitkeep
 
 # 忽略数据库文件（如果不在 data/ 里）
 *.db
+
+# 忽略 Lumerical 的 .fsp 文件
+*.fsp
 
 # 忽略 numpy 临时文件
 *.npy

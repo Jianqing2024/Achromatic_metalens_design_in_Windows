@@ -16,5 +16,6 @@ spec.loader.exec_module(lumapi)
 # 扫描现有数据库，确定缺位，形成任务目录
 # 将任务目录分为几份并行优化填充相位色散库；在单个并行中只打开一次FDTD窗口
 
+
 study = optuna.create_study(direction="minimize")
 study.optimize(objective, n_trials=3)
