@@ -70,6 +70,7 @@ def simulation(parameter,part,queue):
         ms.classicMonitorGroup(fdtd, p, p, 1e-6)
         ms.addMetaBase(fdtd, material1, p, p, 0.5e-6)
         for parameter in value:
+            tic=time()
             l=parameter[2] # 十字结构长度
             w=parameter[3] # 十字结构宽度
             r=parameter[4] # 中心圆半径
@@ -97,7 +98,8 @@ def simulation(parameter,part,queue):
             fdtd.delete()
             #pbar.update(1)
             c+=1
-            print(f"Process {part}: {c}/{num}")
+            toc=time()
+            print(f"Process {part}: {c}/{num}, time={toc-tic}")
         fdtd.deleteall()
                 
     print(f"[{part}] simulation done, sending to queue...")
@@ -142,13 +144,15 @@ def mainFunction1():
     #"SiO2 (Glass) - Palik"
 
     # 计算参数
-    parallelsNum=2
+    parallelsNum=5
         
-    P=np.linspace(0.2e-6,0.5e-6,2)
-    H=np.linspace(0.6e-6,0.8e-6,2)
-    L=np.linspace(0.04e-6,0.5e-6,2)
-    W=np.linspace(0.04e-6,0.4e-6,2)
-    R=np.linspace(0.04e-6,0.18e-6,2)
+    #P=np.linspace(0.2e-6,0.5e-6,2)
+    P=np.array([0.370e-6])
+    #H=np.linspace(0.6e-6,0.8e-6,2)
+    H=np.array([0.350e-6])
+    L=np.linspace(0.04e-6,0.5e-6,16)
+    W=np.linspace(0.04e-6,0.4e-6,16)
+    R=np.linspace(0.04e-6,0.18e-6,16)
 
     allParameterPet = np.full((0, 5), np.nan)
     for p in P:

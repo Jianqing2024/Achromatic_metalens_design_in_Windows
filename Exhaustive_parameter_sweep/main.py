@@ -9,4 +9,4 @@ def main_for_EPS():
     mainFunction1()
 
     # 最优化计算和远场仿真
-    mainFunction2()
+    #mainFunction2()
