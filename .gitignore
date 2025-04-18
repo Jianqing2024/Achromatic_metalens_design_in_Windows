@@ -25,6 +25,7 @@ data/*.db
 
 # 忽略 Lumerical 的 .fsp 文件
 *.fsp
+*.log
 
 # 忽略 numpy 临时文件
 *.npy
