@@ -14,30 +14,25 @@ spec = importlib.util.spec_from_file_location("lumapi", "D:\\Program Files\\Lume
 lumapi = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(lumapi)
 
-def split_matrix(matrix,num):
+def get_db_path():
+    # 获取 main.py 的路径
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    project_root = os.path.abspath(os.path.join(base_dir, '..'))  # 回到 project/
+    db_path = os.path.join(project_root, 'data', 'structures.db')
+    return db_path
+
+def split_matrix(matrix, num):
     n, m = matrix.shape
-    # 平均行数，向下取整
     avg_rows = n // num
     remainder = n % num
 
-    # 每份的行数
-    part_sizes = [avg_rows] * num
-    for i in range(remainder):
-        part_sizes[i] += 1  # 尽量平均地把余数分给前面几份
+    # 前 remainder 份多一行，后面全是 avg_rows 行（最后一份最小）
+    part_sizes = [avg_rows + 1 if i < remainder else avg_rows for i in range(num)]
 
-    # 为了让第四份最小，把多余的行尽量分配给前3份
-    if remainder:
-        # 把最后一份的行数向前移动
-        for i in range(3, 0, -1):
-            while part_sizes[3] > avg_rows and part_sizes[i-1] < avg_rows + 1:
-                part_sizes[3] -= 1
-                part_sizes[i-1] += 1
-
-    # 根据行数分割
     parts = []
     start = 0
     for size in part_sizes:
-        parts.append(matrix[start:start+size])
+        parts.append(matrix[start:start + size])
         start += size
 
     return parts
@@ -133,10 +128,8 @@ def mainFunction1():
     tic=time()
         
     print("扫参正在启动")
-    # 获取当前文件所在脚本的上一级（主目录）路径
-    BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-    DATA_DIR = os.path.join(BASE_DIR, '..', 'data')  # 如果当前脚本在子项目中
-    DB_PATH = os.path.join(DATA_DIR, 'structures.db')
+    
+    DB_PATH = get_db_path()
 
     # 连接数据库
     conn = sqlite3.connect(DB_PATH)
@@ -144,15 +137,18 @@ def mainFunction1():
     #"SiO2 (Glass) - Palik"
 
     # 计算参数
-    parallelsNum=5
+    parallelsNum=2
         
     #P=np.linspace(0.2e-6,0.5e-6,2)
-    P=np.array([0.370e-6])
+    P=np.array([0.4e-6])
     #H=np.linspace(0.6e-6,0.8e-6,2)
-    H=np.array([0.350e-6])
-    L=np.linspace(0.04e-6,0.5e-6,16)
-    W=np.linspace(0.04e-6,0.4e-6,16)
-    R=np.linspace(0.04e-6,0.18e-6,16)
+    H=np.array([0.6e-6])
+    #L=np.linspace(0.04e-6,0.5e-6,16)
+    L=np.linspace(0.25e-6,0.4e-6,10)
+    #W=np.linspace(0.04e-6,0.4e-6,16)
+    W=np.array([0.11e-6])
+    #R=np.linspace(0.04e-6,0.18e-6,16)
+    R=np.array([0.12e-6])
 
     allParameterPet = np.full((0, 5), np.nan)
     for p in P:
