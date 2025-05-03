@@ -137,11 +137,11 @@ def mainFunction1():
     #H=np.linspace(0.6e-6,0.8e-6,2)
     H=np.array([0.6e-6])
     #L=np.linspace(0.04e-6,0.5e-6,16)
-    L=np.linspace(0.25e-6,0.4e-6,10)
+    L=np.array([0.3e-6])
     #W=np.linspace(0.04e-6,0.4e-6,16)
     W=np.array([0.11e-6])
     #R=np.linspace(0.04e-6,0.18e-6,16)
-    R=np.array([0.12e-6])
+    R=np.linspace(0.1e-6,0.15e-6,10)
 
     allParameterPet = np.full((0, 5), np.nan)
     for p in P:
