@@ -1,6 +1,10 @@
 import sqlite3
+import os
 
-conn = sqlite3.connect("structures.db")
+# 显式指定路径
+db_path = r"D:\WORK\Achromatic_metalens_design_in_Windows\data\structures.db"
+
+conn = sqlite3.connect(db_path)
 cursor = conn.cursor()
 
 # 创建表（如果不存在）

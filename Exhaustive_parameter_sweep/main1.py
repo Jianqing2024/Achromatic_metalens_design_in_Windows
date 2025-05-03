@@ -14,13 +14,6 @@ spec = importlib.util.spec_from_file_location("lumapi", "D:\\Program Files\\Lume
 lumapi = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(lumapi)
 
-def get_db_path():
-    # 获取 main.py 的路径
-    base_dir = os.path.dirname(os.path.abspath(__file__))
-    project_root = os.path.abspath(os.path.join(base_dir, '..'))  # 回到 project/
-    db_path = os.path.join(project_root, 'data', 'structures.db')
-    return db_path
-
 def split_matrix(matrix, num):
     n, m = matrix.shape
     avg_rows = n // num
@@ -129,7 +122,7 @@ def mainFunction1():
         
     print("扫参正在启动")
     
-    DB_PATH = get_db_path()
+    DB_PATH = 'D:/WORK/Achromatic_metalens_design_in_Windows/data/structures.db'
 
     # 连接数据库
     conn = sqlite3.connect(DB_PATH)
