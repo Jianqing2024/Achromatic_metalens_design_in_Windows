@@ -15,6 +15,9 @@ lumapi = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(lumapi)
 
 def split_matrix(matrix, num):
+    if num==1:
+        return matrix
+    
     n, m = matrix.shape
     avg_rows = n // num
     remainder = n % num
@@ -29,11 +32,10 @@ def split_matrix(matrix, num):
         start += size
 
     return parts
-def simulation(parameter,part,queue):
+def simulation_nonParallel(parameter,part):
     fdtd=lumapi.FDTD(hide=True)
 
     fdtd.save(f"s{int(part)}.fsp")
-        
     data = np.empty((0, 9))
 
     parameterPet=defaultdict(list)
@@ -42,8 +44,6 @@ def simulation(parameter,part,queue):
         parameterPet[(param1, param2)].append(row)
         
     num = sum(len(v) for v in parameterPet.values())
-        
-    #pbar = tqdm(total=num, desc=f"进程 {int(part)} ", position=part)
         
     wav=[0.532e-6,0.800e-6]
     sourceName='s'
@@ -54,9 +54,9 @@ def simulation(parameter,part,queue):
         
     for key, value in parameterPet.items():
         p,h=key[0],key[1]
-        ms.setMetaFdtd(fdtd, p, p, 1e-6, -0.5e-6)
+        ms.setMetaFdtd(fdtd, p, p, 1e-6, -1e-6)
         ms.classicMonitorGroup(fdtd, p, p, 1e-6)
-        ms.addMetaBase(fdtd, material1, p, p, 0.5e-6)
+        ms.addMetaBase(fdtd, material1, p, p, 1e-6)
         for parameter in value:
             tic=time()
             l=parameter[2] # 十字结构长度
@@ -67,7 +67,7 @@ def simulation(parameter,part,queue):
                 
             main=np.array([[p,h,l,w,r]])
                 
-            ms.addMetaSource(fdtd, p, p, -0.25e-6, wav[0],name=sourceName)
+            ms.addMetaSource(fdtd, p, p, -0.5e-6, wav[0],name=sourceName)
             fdtd.run()
             data532 = ms.classicDataAcquisition(fdtd)
             fdtd.switchtolayout()
@@ -84,7 +84,68 @@ def simulation(parameter,part,queue):
             data = np.concatenate((data, Analysis),axis=0)
             fdtd.select(groupName)
             fdtd.delete()
-            #pbar.update(1)
+
+            c+=1
+            toc=time()
+            print(f"Process {part}: {c}/{num}, time={toc-tic}")
+        fdtd.deleteall()
+                
+    fdtd.close()
+    return data
+    
+def simulation(parameter,part,queue):
+    fdtd=lumapi.FDTD(hide=True)
+
+    fdtd.save(f"s{int(part)}.fsp")
+    data = np.empty((0, 9))
+
+    parameterPet=defaultdict(list)
+    for row in parameter:
+        param1, param2 = row[0], row[1]
+        parameterPet[(param1, param2)].append(row)
+        
+    num = sum(len(v) for v in parameterPet.values())
+        
+    wav=[0.532e-6,0.800e-6]
+    sourceName='s'
+    groupName ='g'
+    material1="SiO2 (Glass) - Palik"
+    material2="TiO2 (Titanium Dioxide) - Devore"
+    c=0
+        
+    for key, value in parameterPet.items():
+        p,h=key[0],key[1]
+        ms.setMetaFdtd(fdtd, p, p, 1e-6, -1e-6)
+        ms.classicMonitorGroup(fdtd, p, p, 1e-6)
+        ms.addMetaBase(fdtd, material1, p, p, 1e-6)
+        for parameter in value:
+            tic=time()
+            l=parameter[2] # 十字结构长度
+            w=parameter[3] # 十字结构宽度
+            r=parameter[4] # 中心圆半径
+                
+            adv.fishnetset(fdtd, material2, h, l, w, r, name=groupName)
+                
+            main=np.array([[p,h,l,w,r]])
+                
+            ms.addMetaSource(fdtd, p, p, -0.5e-6, wav[0],name=sourceName)
+            fdtd.run()
+            data532 = ms.classicDataAcquisition(fdtd)
+            fdtd.switchtolayout()
+            
+            adv.swichWaveLength(fdtd, wav[1], sourceName)
+            fdtd.run()
+            data800 = ms.classicDataAcquisition(fdtd)
+            fdtd.switchtolayout()
+            
+            fdtd.select(sourceName)
+            fdtd.delete()
+                        
+            Analysis=np.concatenate((main, data532, data800),axis=1)
+            data = np.concatenate((data, Analysis),axis=0)
+            fdtd.select(groupName)
+            fdtd.delete()
+
             c+=1
             toc=time()
             print(f"Process {part}: {c}/{num}, time={toc-tic}")
@@ -94,6 +155,7 @@ def simulation(parameter,part,queue):
     queue.put(data)
     print(f"[{part}] put completed.")
     fdtd.close()
+
 def main(parallelsNum,parameter):
     processes = []
     queue = multiprocessing.Queue()
@@ -127,21 +189,26 @@ def mainFunction1():
     # 连接数据库
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
+    print('数据库已上线')
     #"SiO2 (Glass) - Palik"
 
     # 计算参数
-    parallelsNum=2
+    parallelsNum=1
         
     #P=np.linspace(0.2e-6,0.5e-6,2)
     P=np.array([0.4e-6])
+    
     #H=np.linspace(0.6e-6,0.8e-6,2)
     H=np.array([0.6e-6])
-    #L=np.linspace(0.04e-6,0.5e-6,16)
+    
+    #L=np.linspace(0.25e-6,0.4e-6,10)
     L=np.array([0.3e-6])
-    #W=np.linspace(0.04e-6,0.4e-6,16)
+    
+    #W=np.linspace(0.1e-6,0.2e-6,10)
     W=np.array([0.11e-6])
-    #R=np.linspace(0.04e-6,0.18e-6,16)
+    
     R=np.linspace(0.1e-6,0.15e-6,10)
+    #R=np.array([0.12e-6])
 
     allParameterPet = np.full((0, 5), np.nan)
     for p in P:
@@ -152,13 +219,18 @@ def mainFunction1():
                         if w < l:
                             for r in R:
                                 if w <= 2 * r :
-                                    allParameterPet = np.vstack([allParameterPet, np.array([p, h, l, w, r])])               
+                                    allParameterPet = np.vstack([allParameterPet, np.array([p, h, l, w, r])])
+    
+    print(len(allParameterPet))        
     parameter=split_matrix(allParameterPet,parallelsNum)
-    results = main(parallelsNum, parameter)
-    middle_result=np.concatenate(results, axis=0)
-    print("完全退出并行")
-    final_result=defaultdict(list)
+    if parallelsNum>1:
+        results = main(parallelsNum, parameter)
+        middle_result=np.concatenate(results, axis=0)
+        print("完全退出并行")
+    else:
+        middle_result=simulation_nonParallel(parameter,parallelsNum)
         
+    final_result=defaultdict(list)
     for row in middle_result:
         param1, param2 = row[0], row[1]
         final_result[(param1, param2)].append(row)

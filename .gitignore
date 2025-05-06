@@ -23,9 +23,10 @@ data/*.db
 # 忽略数据库文件（如果不在 data/ 里）
 *.db
 
-# 忽略 Lumerical 的 .fsp 文件
+# 忽略其他文件
 *.fsp
 *.log
+*.mat
 
 # 忽略 numpy 临时文件
 *.npy
