@@ -2,6 +2,7 @@ import numpy as np
 import importlib.util
 import sqlite3
 import matplotlib.pyplot as plt
+import matplotlib.colors as mcolors
 
 spec = importlib.util.spec_from_file_location("lumapi", "D:\\Program Files\\Lumerical\\v241\\api\\python\\lumapi.py")
 lumapi = importlib.util.module_from_spec(spec)
@@ -61,7 +62,6 @@ sweep800=10
 bins_532 = np.linspace(-pi, pi, sweep532 + 1)
 bins_800 = np.linspace(-pi, pi, sweep800 + 1)
 
-grid = np.zeros((sweep532, sweep800), dtype=bool)
 # 填充已有的空间
 Phase_space={}
 for row in results:
@@ -75,15 +75,14 @@ for row in results:
     
     Phase_space[id] = [bin_532, bin_800]
 
-phaseMatrix_Bool = np.zeros((sweep532,sweep800))
+phaseMatrix_Bool = np.zeros((sweep532,sweep800),dtype=bool)
 for i, j in np.ndindex(phaseMatrix_Bool.shape):
     for key, value in Phase_space.items(): 
         if value[0]-i==0 and value[1]-j==0:
             phaseMatrix_Bool[i,j]=True
-            break                                                                      
-print(phaseMatrix_Bool)
+            break
 
-plt.imshow(phaseMatrix_Bool, cmap='grey')
+plt.imshow(phaseMatrix_Bool, cmap=mcolors.ListedColormap(['grey', 'green']))
 plt.title('Task directory')
 plt.xlabel('Phase in 532')
 plt.ylabel('Phase in 800')
@@ -92,9 +91,26 @@ plt.yticks([])
 plt.grid(False)
 plt.show(block=False)
 #plt.close()
-plt.pause(60)
+#plt.pause(10)
 
 directory_generation=Task_directory_generation(phaseMatrix_Bool)
 print(directory_generation)
+
+DIC={}
+for key, values in directory_generation.items():
+    DIC_Key_532=bins_532[key[0]+1]-bins_532[key[0]]
+    DIC_Key_800=bins_800[key[1]+1]-bins_800[key[1]]
+    
+    DICkey=[DIC_Key_532, DIC_Key_800]
+## 这里还有错！！！！运行下你就知道了
+    for value in values:
+        value_L1=int(value[0])
+        value_L2=int(value[1])
+        value_L=[value_L1,value_L2]
+        for keykey, value_list in Phase_space.items():
+            if value_L in value_list:
+                DIC[DICkey]=keykey
+                
+print(DIC)
         
 # 将任务目录分为几份并行优化填充相位色散库
