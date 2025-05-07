@@ -193,7 +193,7 @@ def mainFunction1():
     #"SiO2 (Glass) - Palik"
 
     # 计算参数
-    parallelsNum=1
+    parallelsNum=2
         
     #P=np.linspace(0.2e-6,0.5e-6,2)
     P=np.array([0.4e-6])
