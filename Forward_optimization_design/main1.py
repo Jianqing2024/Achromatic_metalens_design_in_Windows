@@ -75,8 +75,6 @@ for row in results:
     
     Phase_space[id] = [bin_532, bin_800]
 
-print(Phase_space)
-
 phaseMatrix_Bool = np.zeros((sweep532,sweep800),dtype=bool)
 for i, j in np.ndindex(phaseMatrix_Bool.shape):
     for key, value in Phase_space.items(): 
@@ -99,22 +97,19 @@ directory_generation=Task_directory_generation(phaseMatrix_Bool)
 matched_keys = []
 DIC={}
 for key, values in directory_generation.items():
-    print(key)
     DIC_Key_532=(bins_532[key[0]+1]+bins_532[key[0]])/2
     DIC_Key_800=(bins_800[key[1]+1]+bins_800[key[1]])/2
     
     DICkey=tuple([DIC_Key_532, DIC_Key_800])
 
     for value in values:
-        value_L1=int(value[0])
-        value_L2=int(value[1])
-        value_L=[value_L1,value_L2]
-        
         for keykey, value_list in Phase_space.items():
-            if (value_list[0]-value_L[0])+(value_list[1]-value_L[1])==0 :
+            if (value_list[0]-value[0])+(value_list[1]-value[1])==0 :
                 matched_keys.append(keykey)
     DIC[DICkey]=matched_keys
     matched_keys = []
-                
-print(DIC)       
-# 将任务目录分为几份并行优化填充相位色散库
+
+for key ,value in DIC.items():
+    print(f'key: {key}   value: {value}\n')
+
+# 填充相位色散库
