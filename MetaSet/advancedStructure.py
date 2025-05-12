@@ -1,5 +1,6 @@
 from .structSet import *
 from .dataCaculate import *
+from collections import defaultdict
 import importlib.util
 import time
 import numpy as np
@@ -28,7 +29,7 @@ def swichWaveLength(fdtd, wav, name):
     fdtd.set("wavelength stop", wav)
     
 class Fishnet(lumapi.FDTD):
-    def Computation(self, disc):
+    def Computation(self, disc, part):
         
         self.save(f"s{int(part)}.fsp")
         data = np.empty((0, 9))

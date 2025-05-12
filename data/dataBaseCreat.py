@@ -1,22 +1,27 @@
 import sqlite3
 import os
 
-# 显式指定路径
-db_path = r"D:\WORK\Achromatic_metalens_design_in_Windows\data\structures.db"
+db_path = r"D:\WORK\Achromatic_metalens_design_in_Windows\data\Main.db"
 
 conn = sqlite3.connect(db_path)
 cursor = conn.cursor()
 
-# 创建表（如果不存在）
+# 创建表
 cursor.execute("""
-CREATE TABLE IF NOT EXISTS structures (
+CREATE TABLE IF NOT EXISTS BaseParameter (
+baseValue INTEGER PRIMARY KEY,
+parameterA REAL NOT NULL,
+parameterB REAL NOT NULL
+)
+""")
+
+cursor.execute("""
+CREATE TABLE IF NOT EXISTS Parameter (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     baseValue INTEGER NOT NULL,
-    P REAL NOT NULL,
-    H REAL NOT NULL,
-    L REAL NOT NULL,
-    W REAL NOT NULL,
-    R REAL NOT NULL,
+    parameterA REAL NOT NULL,
+    parameterB REAL NOT NULL,
+    parameterC REAL NOT NULL,
     angleIn532 REAL NOT NULL,
     transIn532 REAL NOT NULL,
     angleIn800 REAL NOT NULL,
@@ -24,9 +29,9 @@ CREATE TABLE IF NOT EXISTS structures (
 )
 """)
 
-cursor.execute("DELETE FROM structures;")
+cursor.execute("DELETE FROM Parameter;")
 
 # 提交更改并关闭连接
 conn.commit()
 conn.close()
-print("数据库创建完成！")
+print("Task database has been created! ")
