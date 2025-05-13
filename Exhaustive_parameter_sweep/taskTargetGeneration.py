@@ -120,3 +120,5 @@ def parameterFilling(structerClass, classParameter):
                                     INSERT INTO Parameter (class, baseValue, parameterA, parameterB, parameterC)
                                     VALUES (?, ?, ?, ?, ?)
                                     """, (structerClass, mainID, l, w, r))
+    conn.commit()
+    conn.close()

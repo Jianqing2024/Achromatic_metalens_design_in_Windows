@@ -67,8 +67,12 @@ def addMetaSource(fdtd, size_x, size_y, z, wavelength, *, name="source"):
     fdtd.set("x span", size_x)
     fdtd.set("y span", size_y)
     
-    fdtd.set("wavelength start", wavelength)
-    fdtd.set("wavelength stop", wavelength)
+    if len(wavelength)==1:
+        fdtd.set("wavelength start", wavelength)
+        fdtd.set("wavelength stop", wavelength)
+    else:
+        fdtd.set("wavelength start", wavelength[0])
+        fdtd.set("wavelength stop", wavelength[1])
     
     fdtd.set("name",name)
     
