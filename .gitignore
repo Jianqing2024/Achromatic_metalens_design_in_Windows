@@ -27,6 +27,7 @@ venv/
 *.fsp
 *.log
 *.mat
+*.lsf
 
 # 忽略 numpy 临时文件
 *.npy

@@ -1,4 +1,5 @@
 import numpy as np
+from collections import defaultdict
 import sqlite3
 
 def dataBaseClean():
@@ -122,3 +123,50 @@ def parameterFilling(structerClass, classParameter):
                                     """, (structerClass, mainID, l, w, r))
     conn.commit()
     conn.close()
+    
+def databaseCount():
+    DB_PATH = 'D:/WORK/Achromatic_metalens_design_in_Windows/data/Main.db'
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+
+    cursor.execute('SELECT COUNT(*) FROM Parameter')
+    count = cursor.fetchone()[0]
+    
+    cursor.execute('SELECT COUNT(*) FROM Parameter WHERE class = 1')
+    count1 = cursor.fetchone()[0]
+    cursor.execute('SELECT COUNT(*) FROM Parameter WHERE class = 2')
+    count2 = cursor.fetchone()[0]
+    cursor.execute('SELECT COUNT(*) FROM Parameter WHERE class = 3')
+    count3 = cursor.fetchone()[0]
+    cursor.execute('SELECT COUNT(*) FROM Parameter WHERE class = 4')
+    count4 = cursor.fetchone()[0]
+    
+    cursor.execute("SELECT COUNT(DISTINCT baseValue) FROM Parameter")
+    num_classes = cursor.fetchone()[0]
+
+    print(f"Total number of tasks: {count}\nClass1: {count1} | Class2: {count2} | Class3: {count3} | Class4: {count4}\nBasicValue quantities: {num_classes}")
+
+    conn.close()
+
+def resumeTaskDirectory():
+    # 连接数据库
+    DB_PATH = 'D:/WORK/Achromatic_metalens_design_in_Windows/data/Main.db'
+    conn = sqlite3.connect(DB_PATH)
+    conn.row_factory = sqlite3.Row  # 允许用列名访问数据
+    cursor = conn.cursor()
+
+    # 查询所有 angleIn532 为 NULL 的行，只获取需要的字段
+    query = f"""
+        SELECT ID, class, baseValue FROM Parameter
+        WHERE angleIn532 IS NULL
+    """
+    cursor.execute(query)
+
+    # 使用 defaultdict 自动创建列表分组
+    result = defaultdict(list)
+    for row in cursor.fetchall():
+        key = (row['class'], row['baseValue'])  # 分组依据
+        result[key].append(row['ID'])           # 加入 ID
+
+    conn.close()
+    return dict(result)  # 转为普通 dict 返回

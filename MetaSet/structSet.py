@@ -79,6 +79,7 @@ def addMetaSource(fdtd, size_x, size_y, z, wavelength, *, name="source"):
 def classicMonitorGroup(fdtd, size_x, size_y, z):
     """建立一个经典监视器组，包括两个频域能量监视器，
         一个是平行于xy面的面监视器,称为plane;一个是与plane高度相同的点监视器,称为point
+        考虑到多波长情况,为了适应532-800的消色差,加入全局监视器设置,将频率上的监视步长确定为5
 
     Args:
         fdtd (fdtd): fdtd窗口
@@ -98,6 +99,8 @@ def classicMonitorGroup(fdtd, size_x, size_y, z):
     fdtd.set("z", z)
     fdtd.set("x span", size_x)
     fdtd.set("y span", size_y)
+    
+    fdtd.setglobalmonitor("frequency points",5)
 
 def addMetaCircle(fdtd, material, radius, high, *,name="cylinder"):
     """建立一个圆柱结构,结构的底面在z=0处,位置在正中
