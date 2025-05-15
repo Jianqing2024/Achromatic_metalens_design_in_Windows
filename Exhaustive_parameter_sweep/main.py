@@ -1,13 +1,18 @@
-from .taskTargetGeneration import *
+from .dataManager import *
+from .compute import *
 
 def main_for_EPS_Initialization():
     ## 初始化库，制定任务目录，区分类别和主参数
     #  清理库
     dataBaseClean()
     #  定义主参数，填充主值表
-    P=np.linspace(0.4e-6,0.5e-6,3)
-    H=np.linspace(0.5e-6,0.7e-6,3)
+    
+    #P=np.linspace(0.4e-6,0.5e-6,3)
+    P=np.array([0.4e-6])
+    #H=np.linspace(0.5e-6,0.7e-6,3)
+    H=np.array([0.6e-6])
     defineMainvalue(P,H)
+    
     #  定义参数，填充参数表
     L=np.linspace(0.1e-6,0.4e-6,5)
     W=np.linspace(0.1e-6,0.4e-6,5)
@@ -28,11 +33,9 @@ def main_for_EPS_Initialization():
     #  区分类和主参数
     ids=resumeTaskDirectory()
     #  根据任务目录计算
-    
-    
-    
+    Comput(ids)
     
 def main_for_EPS_Resume():
     ## 扫描库，重新计算任务目录
     ids=resumeTaskDirectory()
-    print(ids)
+    Comput(ids)

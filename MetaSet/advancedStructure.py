@@ -18,6 +18,17 @@ def fishnetset(fdtd, material, h, l, w, r, *, name="newGroup"):
     fdtd.select("cie")
     fdtd.addtogroup(name)
     
+def cross(fdtd, material, h, l, w, *, name="newGroup"):
+    fdtd.addstructuregroup()
+    fdtd.set("name", name)
+    
+    addMetaRect(fdtd, material, l, w, h, name="recX")
+    fdtd.select("recX")
+    fdtd.addtogroup(name)
+    addMetaRect(fdtd, material, w, l, h, name="recY")
+    fdtd.select("recY")
+    fdtd.addtogroup(name)
+    
 def swichWaveLength(fdtd, wav, name):
     fdtd.select(name)
     fdtd.set("wavelength start", wav)
@@ -34,5 +45,54 @@ class MetaEngine:
         self.fdtd = lumapi.FDTD(hide=hide)
         filename = f"{name}.fsp"
         self.fdtd.save(filename)
-
-
+        
+    def materialSet(self):
+        self.baseMaterial="SiO2 (Glass) - Palik"
+        self.strMaterial="TiO2 (Titanium Dioxide) - Devore"
+        
+    def baseBuild(self, p):
+        setMetaFdtd(self.fdtd, p, p, 1e-6, -0.5e-6)
+        classicMonitorGroup(self.fdtd, p, p, 1e-6)
+        addMetaBase(self.fdtd, self.baseMaterial, p, p, 1e-6)
+        addMetaSource(self.fdtd, p, p, -0.25e-6, [0.532e-6, 0.8e-6])
+        
+    def structureBuild(self, strClass, parameter, h):
+        if strClass==1:
+            r = parameter[0]
+            addMetaCircle(self.fdtd, self.strMaterial, r, h, name='STR')
+        elif strClass==2:
+            l = parameter[0]
+            addMetaRect(self.fdtd, self.strMaterial, l, l, h, name='STR')
+        elif strClass==3:
+            l, w = parameter[0], parameter[1]
+            cross(self.fdtd, self.strMaterial, h, l, w, name='STR')
+        elif strClass==4:
+            l, w, r = parameter[0], parameter[1], parameter[2]
+            fishnetset(self.fdtd, self.strMaterial, h, l, w, r, name='STR')
+            
+    def dataAcquisition(self):
+        #   重置暂存数据
+        self.Ex=[]
+        self.Trans=[]
+        
+        #   重新运算并存入数据
+        self.fdtd.run()
+        Ex, Trans = classicDataAcquisition_multyWav(self.fdtd)
+        
+        phase_array = np.angle(np.array(Ex))[::-1]
+        unwrapped = np.unwrap(phase_array)
+        unwrapped -= 2 * np.pi * np.floor(unwrapped[0] / (2 * np.pi))
+        Ex=unwrapped.tolist()
+        Trans=Trans.tolist()
+        
+        self.Ex=Ex
+        self.Trans=Trans
+        
+    def semi_Reset(self):
+        self.fdtd.switchtolayout()
+        self.fdtd.select('STR')
+        self.fdtd.delete()
+        
+    def Reset(self):
+        self.fdtd.switchtolayout()
+        self.fdtd.deleteall()

@@ -18,8 +18,9 @@ def classicDataAcquisition(fdtd):
     return data
 
 def classicDataAcquisition_multyWav(fdtd):
-    T=fdtd.transmission("plane")
-    T = T.ravel()
-    Ex=fdtd.getresult("point", "Ex")
+    Trans = fdtd.transmission("plane")
+    Trans = Trans.ravel()
+    Ex = fdtd.getresult("point", "Ex")
     Ex = Ex.ravel()
-    return Ex, T 
+    return Ex, Trans
+
