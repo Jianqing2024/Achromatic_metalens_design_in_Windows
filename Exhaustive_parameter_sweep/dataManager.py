@@ -27,7 +27,7 @@ def defineMainvalue(P,H):
     DB_PATH = 'D:/WORK/Achromatic_metalens_design_in_Windows/data/Main.db'
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
-    print('数据库已上线')
+    print('Database is now online!')
 
     ## 定义参数
     #  定义并加载主参数，储存到附表
@@ -182,3 +182,16 @@ def dataInput(meta, id, conn, cursor):
     sql = f"UPDATE Parameter SET {set_clause} WHERE ID = ?"
     cursor.execute(sql, values + [id])
     conn.commit()
+    
+def resumeCount():
+    DB_PATH = 'D:/WORK/Achromatic_metalens_design_in_Windows/data/Main.db'
+    conn = sqlite3.connect(DB_PATH)
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        SELECT COUNT(*) FROM Parameter
+        WHERE angleIn532 IS NULL
+    """)
+    result = cursor.fetchone()[0]
+    conn.close()
+    print(f'Total number of resume tasks: {result}')

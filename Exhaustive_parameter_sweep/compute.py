@@ -38,3 +38,5 @@ def Comput(ids):
             meta.semi_Reset()
 
         meta.Reset()
+    
+    conn.close()
