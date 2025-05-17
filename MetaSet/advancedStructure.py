@@ -39,12 +39,16 @@ class MetaEngine:
         lumapi_path = "D:\\Program Files\\Lumerical\\v241\\api\\python\\lumapi.py"
 
         spec = importlib.util.spec_from_file_location("lumapi", lumapi_path)
+        
+        if spec is None or spec.loader is None:
+            raise ImportError("无法加载 lumapi 模块或 loader 为空")
+        
         lumapi = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(lumapi)
         
         self.fdtd = lumapi.FDTD(hide=hide)
-        filename = f"{name}.fsp"
-        self.fdtd.save(filename)
+        #filename = f"{name}.fsp"
+        #self.fdtd.save(filename)
         
     def materialSet(self):
         self.baseMaterial="SiO2 (Glass) - Palik"

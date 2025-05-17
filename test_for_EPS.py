@@ -3,7 +3,7 @@ import numpy as np
 
 if __name__ == "__main__":
     ## 是否需要初始化
-    swich=1
+    swich=2
     
     if swich==1:
         #  初始参数设置

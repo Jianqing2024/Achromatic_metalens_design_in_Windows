@@ -6,13 +6,41 @@ import importlib.util
 import sqlite3
 import multiprocessing
 from time import time
-import importlib.util
 import os
+import sys
+from types import ModuleType
 
 # 全局加载 lumapi 模块
-spec = importlib.util.spec_from_file_location("lumapi", "D:\\Program Files\\Lumerical\\v241\\api\\python\\lumapi.py")
-lumapi = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(lumapi)
+
+def load_lumapi(lumapi_path: str) -> ModuleType:
+    """
+    动态导入 lumapi.py 模块。
+
+    参数:
+        lumapi_path: lumapi.py 文件的完整路径，如 "D:/Program Files/Lumerical/v241/api/python/lumapi.py"
+
+    返回:
+        导入后的 lumapi 模块对象
+    """
+    if not os.path.isfile(lumapi_path):
+        raise FileNotFoundError(f"未找到文件: {lumapi_path}")
+    
+    spec = importlib.util.spec_from_file_location("lumapi", lumapi_path)
+    if spec is None:
+        raise ImportError(f"无法从路径创建模块规范: {lumapi_path}")
+
+    lumapi = importlib.util.module_from_spec(spec)
+
+    assert spec.loader is not None, "模块加载器为空，无法导入 lumapi 模块"
+    spec.loader.exec_module(lumapi)
+
+    return lumapi
+
+
+lumapi_path = "D:/Program Files/Lumerical/v241/api/python/lumapi.py"
+lumapi = load_lumapi(lumapi_path)
+
+fdtd = lumapi.FDTD(hide=True)
 
 def split_matrix(matrix, num):
     if num==1:
