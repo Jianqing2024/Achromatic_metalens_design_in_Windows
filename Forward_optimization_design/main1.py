@@ -1,12 +1,7 @@
 import numpy as np
-import importlib.util
 import sqlite3
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
-
-spec = importlib.util.spec_from_file_location("lumapi", "D:\\Program Files\\Lumerical\\v241\\api\\python\\lumapi.py")
-lumapi = importlib.util.module_from_spec(spec)
-spec.loader.exec_module(lumapi)
 
 pi=np.pi
 
