@@ -195,3 +195,15 @@ def resumeCount():
     result = cursor.fetchone()[0]
     conn.close()
     print(f'Total number of resume tasks: {result}')
+    
+def dataInput_Parallel(Ex, Trans, id, conn, cursor):
+    fields = [
+        "angleIn532", "angleIn599", "angleIn666", "angleIn733", "angleIn800",
+        "transIn532", "transIn599", "transIn666", "transIn733", "transIn800"
+    ]
+    values = Ex + Trans  # 两个列表合并，顺序和字段对应
+
+    set_clause = ", ".join([f"{field} = ?" for field in fields])
+    sql = f"UPDATE Parameter SET {set_clause} WHERE ID = ?"
+    cursor.execute(sql, values + [id])
+    conn.commit()

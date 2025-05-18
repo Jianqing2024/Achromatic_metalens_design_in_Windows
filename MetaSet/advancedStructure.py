@@ -35,11 +35,10 @@ def swichWaveLength(fdtd, wav, name):
     fdtd.set("wavelength stop", wav)
     
 class MetaEngine:
-    def __init__(self, hide=True, name='aaa'):
+    def __init__(self, hide=True, name='test', parallel=False):
         lumapi_path = "D:\\Program Files\\Lumerical\\v241\\api\\python\\lumapi.py"
 
         spec = importlib.util.spec_from_file_location("lumapi", lumapi_path)
-        
         if spec is None or spec.loader is None:
             raise ImportError("无法加载 lumapi 模块或 loader 为空")
         
@@ -47,8 +46,12 @@ class MetaEngine:
         spec.loader.exec_module(lumapi)
         
         self.fdtd = lumapi.FDTD(hide=hide)
-        #filename = f"{name}.fsp"
-        #self.fdtd.save(filename)
+        
+        if not parallel:
+            filename = f"{name}.fsp"
+            self.fdtd.save(filename)
+            
+        self.parallel=parallel
         
     def materialSet(self):
         self.baseMaterial="SiO2 (Glass) - Palik"
@@ -87,6 +90,7 @@ class MetaEngine:
         unwrapped = np.unwrap(phase_array)
         unwrapped -= 2 * np.pi * np.floor(unwrapped[0] / (2 * np.pi))
         Ex=unwrapped.tolist()
+        Trans = Trans[::-1]
         Trans=Trans.tolist()
         
         self.Ex=Ex
@@ -100,3 +104,19 @@ class MetaEngine:
     def Reset(self):
         self.fdtd.switchtolayout()
         self.fdtd.deleteall()
+        
+    def StandardDataAcquisition(self, name):
+        self.fdtd.load(name)
+        Trans = self.fdtd.transmission("plane")
+        Trans = Trans.ravel()
+        Ex = self.fdtd.getresult("point", "Ex")
+        Ex = Ex.ravel()
+        
+        phase_array = np.angle(np.array(Ex))[::-1]
+        unwrapped = np.unwrap(phase_array)
+        unwrapped -= 2 * np.pi * np.floor(unwrapped[0] / (2 * np.pi))
+        Ex=unwrapped.tolist()
+        Trans = Trans[::-1]
+        Trans=Trans.tolist()
+        return Ex, Trans
+        
