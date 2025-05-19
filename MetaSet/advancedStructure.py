@@ -118,5 +118,6 @@ class MetaEngine:
         Ex=unwrapped.tolist()
         Trans = Trans[::-1]
         Trans=Trans.tolist()
+        self.semi_Reset()
         return Ex, Trans
         

@@ -8,7 +8,7 @@ def Comput(ids):
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
 
-    meta = ad.MetaEngine()
+    meta = ad.MetaEngine(parallel=True)
     meta.materialSet()
 
     for key, values in tqdm(ids.items(), desc="Base structures", unit="group"):
@@ -37,18 +37,19 @@ def Comput(ids):
     
     conn.close()
     
-def ParallelComput(ids, numParallel):
-    if numParallel > 4:
-        raise RuntimeError("ERROR: 在开启大于四重并行前请确认设置; 如已经设置请注释此判断")
+def ParallelComput(ids, numParallel, total):
+    counterToTotal=0
+    #if numParallel > 4:
+    #    raise RuntimeError("ERROR: 在开启大于四重并行前请确认设置; 如已经设置请注释此判断")
     
     DB_PATH = 'D:/WORK/Achromatic_metalens_design_in_Windows/data/Main.db'
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
 
-    meta = ad.MetaEngine()
+    meta = ad.MetaEngine(parallel=False)
     meta.materialSet()
 
-    for key, values in tqdm(ids.items(), desc="Base structures", unit="group"):
+    for key, values in ids.items():
         strClass, baseValue = key[0], key[1]
 
         cursor.execute("""
@@ -62,7 +63,6 @@ def ParallelComput(ids, numParallel):
         chunks = (lambda v, n: [v[i:i + n] for i in range(0, len(v), n)])(values, numParallel)
         
         for groups in chunks:
-            print(groups)
             counter=0
             dict = {}
             for id in groups:
@@ -73,14 +73,16 @@ def ParallelComput(ids, numParallel):
                 parameter = [row[3], row[4], row[5]]
                 meta.structureBuild(strClass, parameter, h)
                 meta.fdtd.save(name)
-                meta.fdtd.addjob(name)
                 meta.semi_Reset()
+                meta.fdtd.addjob(name)
                 counter+=1
-            meta.fdtd.runjob()
+            meta.fdtd.runjobs()
             
             for name, id in dict.items():
                 Ex, Trans = meta.StandardDataAcquisition(name)
                 dataInput_Parallel(Ex, Trans, id, conn, cursor)
+                counterToTotal+=1
+                print(f'Task progress: {counterToTotal} / {total}')
                 
         meta.Reset()
         

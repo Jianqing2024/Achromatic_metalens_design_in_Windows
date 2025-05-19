@@ -145,8 +145,8 @@ def databaseCount():
     num_classes = cursor.fetchone()[0]
 
     print(f"Total number of tasks: {count}\nClass1: {count1} | Class2: {count2} | Class3: {count3} | Class4: {count4}\nBasicValue quantities: {num_classes}")
-
     conn.close()
+    return count
 
 def resumeTaskDirectory():
     # 连接数据库
@@ -195,6 +195,7 @@ def resumeCount():
     result = cursor.fetchone()[0]
     conn.close()
     print(f'Total number of resume tasks: {result}')
+    return result
     
 def dataInput_Parallel(Ex, Trans, id, conn, cursor):
     fields = [
