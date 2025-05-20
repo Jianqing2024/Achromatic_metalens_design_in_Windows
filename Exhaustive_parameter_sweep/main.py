@@ -25,7 +25,7 @@ def main_for_EPS_Initialization(DIC):
     databaseCount()
  
 def Initial_structure_directory():
-    DIC={'P':np.linspace(0.4e-6,0.5e-6,4),
+    DIC={   'P':np.linspace(0.4e-6,0.5e-6,4),
             'H':np.linspace(0.5e-6,0.7e-6,4),
             'ParameterAForClass1':np.linspace(0.04e-6,0.18e-6,10),
             'ParameterAForClass2':np.linspace(0.1e-6,0.4e-6,10),
@@ -48,6 +48,6 @@ def main_for_EPS_Parallel(Parallelnum):
     ## 扫描库，重新计算任务目录
     ids=resumeTaskDirectory()
     #  计算重续任务量
-    total=resumeCount()
+    resumeCount()
     ## 根据任务目录计算
-    ParallelComput(ids, Parallelnum, total)
+    ParallelComput(Parallelnum)

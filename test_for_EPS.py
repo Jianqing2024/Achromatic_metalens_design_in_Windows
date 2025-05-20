@@ -8,6 +8,6 @@ main.main_for_EPS_Initialization(DIC)
 parallel=True
 
 if parallel:
-    main.main_for_EPS_Parallel(7)
+    main.main_for_EPS_Parallel(4)
 else:
     main.main_for_EPS_NotParallel()

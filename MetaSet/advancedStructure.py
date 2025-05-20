@@ -58,12 +58,15 @@ class MetaEngine:
         self.strMaterial="TiO2 (Titanium Dioxide) - Devore"
         
     def baseBuild(self, p):
-        setMetaFdtd(self.fdtd, p, p, 1e-6, -0.5e-6)
-        classicMonitorGroup(self.fdtd, p, p, 1e-6)
+        self.highEst=0.8e-6
+        setMetaFdtd(self.fdtd, p, p, self.highEst, -0.5e-6)
+        classicMonitorGroup(self.fdtd, p, p, self.highEst)
         addMetaBase(self.fdtd, self.baseMaterial, p, p, 1e-6)
         addMetaSource(self.fdtd, p, p, -0.25e-6, [0.532e-6, 0.8e-6])
         
     def structureBuild(self, strClass, parameter, h):
+        if h > self.highEst:
+            raise ValueError("Structure height exceeds the maximum height of the built-in FDTD region")
         if strClass==1:
             r = parameter[0]
             addMetaCircle(self.fdtd, self.strMaterial, r, h, name='STR')

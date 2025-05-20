@@ -27,7 +27,7 @@ def defineMainvalue(P,H):
     DB_PATH = 'D:/WORK/Achromatic_metalens_design_in_Windows/data/Main.db'
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
-    print('Database is now online!')
+    print('Empty database is now online')
 
     ## 定义参数
     #  定义并加载主参数，储存到附表
@@ -116,7 +116,7 @@ def parameterFilling(structerClass, classParameter):
                         r=E
                         if l <= p:
                             if l > w:
-                                if w <= 2 * r :
+                                if w > 2 * r :
                                     cursor.execute("""
                                     INSERT INTO Parameter (class, baseValue, parameterA, parameterB, parameterC)
                                     VALUES (?, ?, ?, ?, ?)
