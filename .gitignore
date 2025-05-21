@@ -21,6 +21,7 @@ venv/
 *.mat
 *.lsf
 *.db
+*.asv
 
 # 忽略 numpy 临时文件
 *.npy
