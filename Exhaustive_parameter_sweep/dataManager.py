@@ -173,8 +173,8 @@ def resumeTaskDirectory():
 
 def dataInput(meta, id, conn, cursor):
     fields = [
-        "angleIn532", "angleIn599", "angleIn666", "angleIn733", "angleIn800",
-        "transIn532", "transIn599", "transIn666", "transIn733", "transIn800"
+        "angleIn800", "angleIn733", "angleIn666", "angleIn599", "angleIn532",
+        "transIn800", "transIn733", "transIn666", "transIn599", "transIn532"
     ]
     values = meta.Ex + meta.Trans  # 两个列表合并，顺序和字段对应
 
@@ -199,8 +199,8 @@ def resumeCount():
     
 def dataInput_Parallel(Ex, Trans, id, conn, cursor):
     fields = [
-        "angleIn532", "angleIn599", "angleIn666", "angleIn733", "angleIn800",
-        "transIn532", "transIn599", "transIn666", "transIn733", "transIn800"
+        "angleIn800", "angleIn733", "angleIn666", "angleIn599", "angleIn532",
+        "transIn800", "transIn733", "transIn666", "transIn599", "transIn532"
     ]
     values = Ex + Trans  # 两个列表合并，顺序和字段对应
 

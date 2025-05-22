@@ -8,7 +8,7 @@ def Comput(ids):
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
 
-    meta = ad.MetaEngine(parallel=True)
+    meta = ad.MetaEngine(parallel=False)
     meta.materialSet()
 
     for key, values in tqdm(ids.items(), desc="Base structures", unit="group"):
@@ -73,7 +73,23 @@ def ParallelComput(numParallel):
     meta = ad.MetaEngine(parallel=True)
     meta.materialSet()
 
-    cursor.execute("SELECT ID, class, baseValue, parameterA, parameterB, parameterC FROM Parameter")
+    # 查找第一个 angleIn800 ≠ 0 的 ID
+    cursor.execute("SELECT ID FROM Parameter WHERE angleIn800 != 0 ORDER BY ID ASC LIMIT 1")
+    start_row = cursor.fetchone()
+    if start_row:
+        start_id = start_row[0]
+    else:
+        print("所有任务均完成，终止任务。")
+        conn.close()
+        return
+
+    # 查询所有待处理的行（从起始 ID 开始）
+    cursor.execute("""
+        SELECT ID, class, baseValue, parameterA, parameterB, parameterC
+        FROM Parameter
+        WHERE ID >= ?
+        ORDER BY ID ASC
+    """, (start_id,))
     all_rows = cursor.fetchall()
 
     group = []
@@ -106,10 +122,12 @@ def ParallelComput(numParallel):
             "h": base_paramB
         })
 
+        # 一组满了就执行
         if len(group) == numParallel:
             STRUCT(meta, group, conn, cursor)
-            group=[]
-                
+            group = []
+
+    # 处理剩余不足 numParallel 的最后一组
     if group:
         STRUCT(meta, group, conn, cursor)
 

@@ -22,16 +22,16 @@ CREATE TABLE IF NOT EXISTS Parameter (
     parameterA REAL NOT NULL,
     parameterB REAL,
     parameterC REAL,
-    angleIn532 REAL,
-    angleIn599 REAL,
-    angleIn666 REAL,
-    angleIn733 REAL,
     angleIn800 REAL,
-    transIn532 REAL,
-    transIn599 REAL,
-    transIn666 REAL,
+    angleIn733 REAL,
+    angleIn666 REAL,
+    angleIn599 REAL,
+    angleIn532 REAL,
+    transIn800 REAL,
     transIn733 REAL,
-    transIn800 REAL
+    transIn666 REAL,
+    transIn599 REAL,
+    transIn532 REAL
     )
     """)
 

@@ -81,23 +81,19 @@ class MetaEngine:
             fishnetset(self.fdtd, self.strMaterial, h, l, w, r, name='STR')
             
     def dataAcquisition(self):
-        #   重置暂存数据
-        self.Ex=[]
-        self.Trans=[]
-        
-        #   重新运算并存入数据
+        # 重置暂存数据
+        self.Ex = []
+        self.Trans = []
+
         self.fdtd.run()
         Ex, Trans = classicDataAcquisition_multyWav(self.fdtd)
-        
-        phase_array = np.angle(np.array(Ex))[::-1]
+
+        phase_array = np.angle(np.array(Ex))
         unwrapped = np.unwrap(phase_array)
         unwrapped -= 2 * np.pi * np.floor(unwrapped[0] / (2 * np.pi))
-        Ex=unwrapped.tolist()
-        Trans = Trans[::-1]
-        Trans=Trans.tolist()
-        
-        self.Ex=Ex
-        self.Trans=Trans
+
+        self.Ex = unwrapped.tolist()
+        self.Trans = Trans.tolist()
         
     def semi_Reset(self):
         self.fdtd.switchtolayout()
@@ -110,17 +106,21 @@ class MetaEngine:
         
     def StandardDataAcquisition(self, name):
         self.fdtd.load(name)
+
         Trans = self.fdtd.transmission("plane")
         Trans = Trans.ravel()
+ 
         Ex = self.fdtd.getresult("point", "Ex")
         Ex = Ex.ravel()
-        
-        phase_array = np.angle(np.array(Ex))[::-1]
+
+        phase_array = np.angle(np.array(Ex))
         unwrapped = np.unwrap(phase_array)
+
         unwrapped -= 2 * np.pi * np.floor(unwrapped[0] / (2 * np.pi))
-        Ex=unwrapped.tolist()
-        Trans = Trans[::-1]
-        Trans=Trans.tolist()
+
+        Ex = unwrapped.tolist()
+        Trans = Trans.tolist()
+
         self.semi_Reset()
         return Ex, Trans
-        
+    
