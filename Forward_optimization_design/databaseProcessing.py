@@ -1,10 +1,11 @@
 import sqlite3
+import os
 
-def creatDatabase():
-    # 显式指定路径
-    db_path = r"D:\WORK\Achromatic_metalens_design_in_Windows\data\Task.db"
+def creatTaskDatabase():
+    base_dir = os.getcwd()
+    DB_PATH = os.path.join(base_dir, "data", "Main.db")
 
-    conn = sqlite3.connect(db_path)
+    conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
 
     # 创建表任务表

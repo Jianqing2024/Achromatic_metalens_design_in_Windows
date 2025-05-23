@@ -14,4 +14,6 @@
 
 LumAPI接口路径需要手动修改
 
-在使用并行运算功能前务必将LumericalFDTD软件中的Resource部分设置好
+在使用并行运算功能前务必将LumericalFDTD软件GUI页面中的Resource部分设置好
+
+必须在GUI页面中设置好模板文件的材料

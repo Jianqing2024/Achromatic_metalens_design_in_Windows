@@ -1,8 +1,8 @@
 from .structSet import *
 from .dataCaculate import *
-from collections import defaultdict
 import importlib.util
 import numpy as np
+import os
 
 def fishnetset(fdtd, material, h, l, w, r, *, name="newGroup"):
     fdtd.addstructuregroup()
@@ -35,7 +35,7 @@ def swichWaveLength(fdtd, wav, name):
     fdtd.set("wavelength stop", wav)
     
 class MetaEngine:
-    def __init__(self, hide=True, name='test', parallel=False):
+    def __init__(self, hide=True, name='test', parallel=False, template=False):
         lumapi_path = "D:\\Program Files\\Lumerical\\v241\\api\\python\\lumapi.py"
 
         spec = importlib.util.spec_from_file_location("lumapi", lumapi_path)
@@ -45,17 +45,42 @@ class MetaEngine:
         lumapi = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(lumapi)
         
-        self.fdtd = lumapi.FDTD(hide=hide)
-        
-        if not parallel:
-            filename = f"{name}.fsp"
-            self.fdtd.save(filename)
+        if template:
+            base_dir = os.getcwd()
+            template_path = os.path.join(base_dir, "data", "STANDARD.fsp")
+            computation_path = os.path.join(base_dir, "data", f"{name}.fsp")           
+            if not os.path.isfile(template_path):
+                raise FileNotFoundError(f"模板文件未找到: {template_path}")
             
-        self.parallel=parallel
+            fdtd=lumapi.FDTD(template_path ,hide=True)
+            fdtd.save(computation_path)
+            fdtd.close()
+        
+            self.fdtd = lumapi.FDTD(computation_path, hide=hide)
+            self.name = name
+        else:
+            self.fdtd = lumapi.FDTD(hide=hide)
+            if not parallel:
+                filename = f"{name}.fsp"
+                self.fdtd.save(filename)
+            
+        self.template=template
         
     def materialSet(self):
-        self.baseMaterial="SiO2 (Glass) - Palik"
-        self.strMaterial="TiO2 (Titanium Dioxide) - Devore"
+        if self.template:
+            self.baseMaterial="TiO2_2023"
+            self.strMaterial="SiO2 (Glass) - Palik"
+            identification=self.fdtd.materialexists(self.name)
+            if not identification:
+                raise RuntimeError("Material not properly assigned")
+            else:
+                print("Please note that you are using materials from the ORIGINAL material library.")
+        else:
+            self.baseMaterial="TiO2_2023"
+            self.strMaterial="SiO2 (Glass) - Palik"
+            print("Please note that you are using materials from the TEMPLLATE file.")
+
+        print(f"BaseMaterial : {self.baseMaterial}\nStrMaterial : {self.strMaterial}")
         
     def baseBuild(self, p):
         self.highEst=0.8e-6
@@ -81,7 +106,6 @@ class MetaEngine:
             fishnetset(self.fdtd, self.strMaterial, h, l, w, r, name='STR')
             
     def dataAcquisition(self):
-        # 重置暂存数据
         self.Ex = []
         self.Trans = []
 
@@ -109,7 +133,7 @@ class MetaEngine:
 
         Trans = self.fdtd.transmission("plane")
         Trans = Trans.ravel()
- 
+
         Ex = self.fdtd.getresult("point", "Ex")
         Ex = Ex.ravel()
 
