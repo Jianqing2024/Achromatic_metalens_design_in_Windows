@@ -1,10 +1,12 @@
 import sqlite3
+import os
 from tqdm import tqdm
 from MetaSet import advancedStructure as ad
 from .dataManager import *
 
 def Comput(ids):
-    DB_PATH = 'D:/WORK/Achromatic_metalens_design_in_Windows/data/Main.db'
+    base_dir = os.getcwd()
+    DB_PATH = os.path.join(base_dir, "data", "Main.db")
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
 
@@ -66,31 +68,27 @@ def STRUCT(meta, group, conn, cursor):
 
 
 def ParallelComput(numParallel):
-    DB_PATH = 'D:/WORK/Achromatic_metalens_design_in_Windows/data/Main.db'
+    base_dir = os.getcwd()
+    DB_PATH = os.path.join(base_dir, "data", "Main.db")
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
 
     meta = ad.MetaEngine(parallel=True)
     meta.materialSet()
 
-    # 查找第一个 angleIn800 ≠ 0 的 ID
-    cursor.execute("SELECT ID FROM Parameter WHERE angleIn800 != 0 ORDER BY ID ASC LIMIT 1")
-    start_row = cursor.fetchone()
-    if start_row:
-        start_id = start_row[0]
-    else:
-        print("所有任务均完成，终止任务。")
-        conn.close()
-        return
-
-    # 查询所有待处理的行（从起始 ID 开始）
+    # 查询所有尚未处理（angleIn800 为 NULL）的行
     cursor.execute("""
         SELECT ID, class, baseValue, parameterA, parameterB, parameterC
         FROM Parameter
-        WHERE ID >= ?
+        WHERE angleIn800 IS NULL
         ORDER BY ID ASC
-    """, (start_id,))
+    """)
     all_rows = cursor.fetchall()
+
+    if not all_rows:
+        print("所有任务均完成，终止任务。")
+        conn.close()
+        return
 
     group = []
 

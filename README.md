@@ -1,4 +1,4 @@
-### Design_For_Metalens
+## Design_For_Metalens
 
 **_Windows部分_**
 
@@ -10,8 +10,8 @@
 
 其中，远场仿真使用的代码使用衍射积分法，基于瑞利-索末菲衍射积分公式，使用前需先手动将其加入到Matlab路径中
 
-## 注意事项
+# 注意事项
 
-# 数据库路径需要手动修改
+LumAPI接口路径需要手动修改
 
-# 在使用并行运算功能前务必将LumericalFDTD软件中的Resource部分设置好
+在使用并行运算功能前务必将LumericalFDTD软件中的Resource部分设置好

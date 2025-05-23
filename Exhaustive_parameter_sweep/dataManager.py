@@ -1,9 +1,12 @@
 import numpy as np
 from collections import defaultdict
 import sqlite3
+import os
 
 def dataBaseClean():
-    conn = sqlite3.connect('D:/WORK/Achromatic_metalens_design_in_Windows/data/Main.db')
+    base_dir = os.getcwd()
+    DB_PATH = os.path.join(base_dir, "data", "Main.db")
+    conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
 
     # 获取所有用户自建的表名（排除SQLite系统表）
@@ -24,7 +27,8 @@ def dataBaseClean():
 
 def defineMainvalue(P,H):
     ## 链接到主数据库
-    DB_PATH = 'D:/WORK/Achromatic_metalens_design_in_Windows/data/Main.db'
+    base_dir = os.getcwd()
+    DB_PATH = os.path.join(base_dir, "data", "Main.db")
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     print('Empty database is now online')
@@ -48,7 +52,8 @@ def defineMainvalue(P,H):
 
 def parameterFilling(structerClass, classParameter):
     ## 重新加载主参数序列
-    DB_PATH = 'D:/WORK/Achromatic_metalens_design_in_Windows/data/Main.db'
+    base_dir = os.getcwd()
+    DB_PATH = os.path.join(base_dir, "data", "Main.db")
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
 
@@ -125,7 +130,8 @@ def parameterFilling(structerClass, classParameter):
     conn.close()
     
 def databaseCount():
-    DB_PATH = 'D:/WORK/Achromatic_metalens_design_in_Windows/data/Main.db'
+    base_dir = os.getcwd()
+    DB_PATH = os.path.join(base_dir, "data", "Main.db")
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
 
@@ -150,7 +156,8 @@ def databaseCount():
 
 def resumeTaskDirectory():
     # 连接数据库
-    DB_PATH = 'D:/WORK/Achromatic_metalens_design_in_Windows/data/Main.db'
+    base_dir = os.getcwd()
+    DB_PATH = os.path.join(base_dir, "data", "Main.db")
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row  # 允许用列名访问数据
     cursor = conn.cursor()
@@ -184,7 +191,8 @@ def dataInput(meta, id, conn, cursor):
     conn.commit()
     
 def resumeCount():
-    DB_PATH = 'D:/WORK/Achromatic_metalens_design_in_Windows/data/Main.db'
+    base_dir = os.getcwd()
+    DB_PATH = os.path.join(base_dir, "data", "Main.db")
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
 
