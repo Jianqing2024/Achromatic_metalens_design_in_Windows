@@ -48,11 +48,11 @@ class MetaEngine:
         if template:
             base_dir = os.getcwd()
             template_path = os.path.join(base_dir, "data", "STANDARD.fsp")
-            computation_path = os.path.join(base_dir, "data", f"{name}.fsp")           
+            computation_path = os.path.join(base_dir, f"{name}.fsp")           
             if not os.path.isfile(template_path):
                 raise FileNotFoundError(f"模板文件未找到: {template_path}")
             
-            fdtd=lumapi.FDTD(template_path ,hide=True)
+            fdtd = lumapi.FDTD(template_path ,hide=True)
             fdtd.save(computation_path)
             fdtd.close()
         
@@ -64,21 +64,21 @@ class MetaEngine:
                 filename = f"{name}.fsp"
                 self.fdtd.save(filename)
             
-        self.template=template
+        self.template = template
         
     def materialSet(self):
         if self.template:
-            self.baseMaterial="TiO2_2023"
-            self.strMaterial="SiO2 (Glass) - Palik"
-            identification=self.fdtd.materialexists(self.name)
+            self.baseMaterial = "TiO2_2023"
+            self.strMaterial = "SiO2 (Glass) - Palik"
+            identification = self.fdtd.materialexists(self.baseMaterial)
             if not identification:
                 raise RuntimeError("Material not properly assigned")
             else:
-                print("Please note that you are using materials from the ORIGINAL material library.")
+                print("Please note that you are using materials from the TEMPLLATE file.")
         else:
-            self.baseMaterial="TiO2_2023"
-            self.strMaterial="SiO2 (Glass) - Palik"
-            print("Please note that you are using materials from the TEMPLLATE file.")
+            self.baseMaterial = "TiO2_2023"
+            self.strMaterial = "SiO2 (Glass) - Palik"
+            print("Please note that you are using materials from the ORIGINAL material library.")
 
         print(f"BaseMaterial : {self.baseMaterial}\nStrMaterial : {self.strMaterial}")
         
@@ -92,16 +92,16 @@ class MetaEngine:
     def structureBuild(self, strClass, parameter, h):
         if h > self.highEst:
             raise ValueError("Structure height exceeds the maximum height of the built-in FDTD region")
-        if strClass==1:
+        if strClass == 1:
             r = parameter[0]
             addMetaCircle(self.fdtd, self.strMaterial, r, h, name='STR')
-        elif strClass==2:
+        elif strClass == 2:
             l = parameter[0]
             addMetaRect(self.fdtd, self.strMaterial, l, l, h, name='STR')
-        elif strClass==3:
+        elif strClass == 3:
             l, w = parameter[0], parameter[1]
             cross(self.fdtd, self.strMaterial, h, l, w, name='STR')
-        elif strClass==4:
+        elif strClass == 4:
             l, w, r = parameter[0], parameter[1], parameter[2]
             fishnetset(self.fdtd, self.strMaterial, h, l, w, r, name='STR')
             

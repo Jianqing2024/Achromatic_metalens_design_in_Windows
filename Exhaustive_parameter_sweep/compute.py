@@ -39,12 +39,13 @@ def Comput(ids):
     
     conn.close()
 
-def STRUCT(meta, group, conn, cursor):
+def STRUCT(meta, group, conn, cursor, RUN_PATH):
     dic = {}
     for index, item in enumerate(group):
         meta.Reset()
         name=f'test{index}.fsp'
-        dic[name]=item["id"]
+        Absolute_name = os.path.join(RUN_PATH, name)
+        dic[Absolute_name]=item["id"]
         strClass=item["class"]
         p=item["p"]
         h=item["h"]
@@ -56,24 +57,25 @@ def STRUCT(meta, group, conn, cursor):
         
         meta.baseBuild(p)
         meta.structureBuild(strClass, parameter, h)
-        meta.fdtd.save(name)
-        meta.fdtd.addjob(name)
+        meta.fdtd.save(Absolute_name)
+        meta.fdtd.addjob(Absolute_name)
          
     meta.fdtd.runjobs("FDTD")
     meta.fdtd.clearjobs()
             
-    for name, id in dic.items():
-        Ex, Trans = meta.StandardDataAcquisition(name)
+    for Absolute_name, id in dic.items():
+        Ex, Trans = meta.StandardDataAcquisition(Absolute_name)
         dataInput_Parallel(Ex, Trans, id, conn, cursor)
 
 
 def ParallelComput(numParallel):
-    base_dir = os.getcwd()
-    DB_PATH = os.path.join(base_dir, "data", "Main.db")
+    RUN_PATH = os.getcwd()
+    DB_PATH = os.path.join(RUN_PATH, "data", "Main.db")
+    
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
 
-    meta = ad.MetaEngine(parallel=True)
+    meta = ad.MetaEngine(parallel=True, template=True)
     meta.materialSet()
 
     # 查询所有尚未处理（angleIn800 为 NULL）的行
@@ -122,11 +124,11 @@ def ParallelComput(numParallel):
 
         # 一组满了就执行
         if len(group) == numParallel:
-            STRUCT(meta, group, conn, cursor)
+            STRUCT(meta, group, conn, cursor, RUN_PATH)
             group = []
 
     # 处理剩余不足 numParallel 的最后一组
     if group:
-        STRUCT(meta, group, conn, cursor)
+        STRUCT(meta, group, conn, cursor, RUN_PATH)
 
     conn.close()
