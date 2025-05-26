@@ -1,5 +1,6 @@
 import sqlite3
 import os
+import re
 from tqdm import tqdm
 from MetaSet import advancedStructure as ad
 from .dataManager import *
@@ -39,7 +40,7 @@ def Comput(ids):
     
     conn.close()
 
-def STRUCT(meta, group, conn, cursor, RUN_PATH):
+def Jobs_Preparation(meta, group, RUN_PATH):
     dic = {}
     for index, item in enumerate(group):
         meta.Reset()
@@ -59,14 +60,46 @@ def STRUCT(meta, group, conn, cursor, RUN_PATH):
         meta.structureBuild(strClass, parameter, h)
         meta.fdtd.save(Absolute_name)
         meta.fdtd.addjob(Absolute_name)
-         
-    meta.fdtd.runjobs("FDTD")
-    meta.fdtd.clearjobs()
-            
-    for Absolute_name, id in dic.items():
-        Ex, Trans = meta.StandardDataAcquisition(Absolute_name)
-        dataInput_Parallel(Ex, Trans, id, conn, cursor)
+        
+    return dic
+        
+def Jobs_Confirmation(meta, num):
+    JobsListt=meta.fdtd.listjobs()
+    # 正则表达式：匹配斜杠后面的文件名（以 .fsp 结尾）
+    pattern = r'([^\\/]+\.fsp)'
+    filenames = re.findall(pattern, JobsListt)
 
+    if len(filenames) == num:
+        Jobs=True
+    else:
+        Jobs=False
+    return Jobs
+
+def STRUCT(meta, group, conn, cursor, RUN_PATH):
+    
+    dic=Jobs_Preparation(meta, group, RUN_PATH)
+    Job=Jobs_Confirmation(meta, len(group))
+    
+    if Job:
+        meta.fdtd.runjobs("FDTD")
+        for Absolute_name, id in dic.items():
+            Ex, Trans = meta.StandardDataAcquisition(Absolute_name)
+            dataInput_Parallel(Ex, Trans, id, conn, cursor)
+    else:
+        print("A Jobs issue occurred; attempting to resolve it by resetting.")
+        meta.fdtd.clearjobs()
+        dic=Jobs_Preparation(meta, group, RUN_PATH)
+        Job2=Jobs_Confirmation(meta, len(group))
+        
+        assert Job2, "Jobs still encountering issues. Stopped to avoid more complex errors."
+
+        print("Issue resolved, rerunning now.")
+        meta.fdtd.runjobs("FDTD")
+        for Absolute_name, id in dic.items():
+            Ex, Trans = meta.StandardDataAcquisition(Absolute_name)
+            dataInput_Parallel(Ex, Trans, id, conn, cursor)
+
+            
 
 def ParallelComput(numParallel):
     RUN_PATH = os.getcwd()
@@ -132,3 +165,4 @@ def ParallelComput(numParallel):
         STRUCT(meta, group, conn, cursor, RUN_PATH)
 
     conn.close()
+    

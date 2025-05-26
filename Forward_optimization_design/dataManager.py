@@ -132,6 +132,9 @@ def Task_Database_Module(mainValue):
 
     # 计算 Δφ
     processed = []
+    base=1
+    phi_532=2
+    phi_800=3
     for baseValue, parameterA, parameterB, parameterB, angleIn532, angleIn800 in rows:
         delta_phi = angleIn532 - angleIn800
         processed.append((base, phi_532, phi_800, delta_phi))
