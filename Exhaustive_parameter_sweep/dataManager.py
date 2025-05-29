@@ -162,10 +162,10 @@ def resumeTaskDirectory():
     conn.row_factory = sqlite3.Row  # 允许用列名访问数据
     cursor = conn.cursor()
 
-    # 查询所有 angleIn532 为 NULL 的行，只获取需要的字段
+    # 查询所有 angleIn1 为 NULL 的行，只获取需要的字段
     query = f"""
         SELECT ID, class, baseValue FROM Parameter
-        WHERE angleIn532 IS NULL
+        WHERE angleIn1 IS NULL
     """
     cursor.execute(query)
 
@@ -180,8 +180,8 @@ def resumeTaskDirectory():
 
 def dataInput(meta, id, conn, cursor):
     fields = [
-        "angleIn800", "angleIn733", "angleIn666", "angleIn599", "angleIn532",
-        "transIn800", "transIn733", "transIn666", "transIn599", "transIn532"
+        "angleIn1", "angleIn2", "angleIn3", "angleIn4", "angleIn5",
+        "transIn1", "transIn2", "transIn3", "transIn4", "transIn5"
     ]
     values = meta.Ex + meta.Trans  # 两个列表合并，顺序和字段对应
 
@@ -198,7 +198,7 @@ def resumeCount():
 
     cursor.execute("""
         SELECT COUNT(*) FROM Parameter
-        WHERE angleIn532 IS NULL
+        WHERE angleIn5 IS NULL
     """)
     result = cursor.fetchone()[0]
     conn.close()
@@ -207,8 +207,8 @@ def resumeCount():
     
 def dataInput_Parallel(Ex, Trans, id, conn, cursor):
     fields = [
-        "angleIn800", "angleIn733", "angleIn666", "angleIn599", "angleIn532",
-        "transIn800", "transIn733", "transIn666", "transIn599", "transIn532"
+        "angleIn1", "angleIn2", "angleIn3", "angleIn4", "angleIn5",
+        "transIn1", "transIn2", "transIn3", "transIn4", "transIn5"
     ]
     values = Ex + Trans  # 两个列表合并，顺序和字段对应
 

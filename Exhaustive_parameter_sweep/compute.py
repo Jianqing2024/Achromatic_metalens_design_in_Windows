@@ -5,13 +5,13 @@ from tqdm import tqdm
 from MetaSet import advancedStructure as ad
 from .dataManager import *
 
-def Comput(ids):
+def Comput(ids, template, SpectralRange):
     base_dir = os.getcwd()
     DB_PATH = os.path.join(base_dir, "data", "Main.db")
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
 
-    meta = ad.MetaEngine(parallel=False)
+    meta = ad.MetaEngine(parallel=False, template=template, SpectralRange=SpectralRange)
     meta.materialSet()
 
     for key, values in tqdm(ids.items(), desc="Base structures", unit="group"):
@@ -97,25 +97,23 @@ def STRUCT(meta, group, conn, cursor, RUN_PATH):
         meta.fdtd.runjobs("FDTD")
         for Absolute_name, id in dic.items():
             Ex, Trans = meta.StandardDataAcquisition(Absolute_name)
-            dataInput_Parallel(Ex, Trans, id, conn, cursor)
+            dataInput_Parallel(Ex, Trans, id, conn, cursor) 
 
-            
-
-def ParallelComput(numParallel):
+def ParallelComput(numParallel, SpectralRange):
     RUN_PATH = os.getcwd()
     DB_PATH = os.path.join(RUN_PATH, "data", "Main.db")
     
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
 
-    meta = ad.MetaEngine(parallel=True, template=True)
+    meta = ad.MetaEngine(parallel=True, template=True, SpectralRange=SpectralRange)
     meta.materialSet()
 
-    # 查询所有尚未处理（angleIn800 为 NULL）的行
+    # 查询所有尚未处理（angleIn1 为 NULL）的行
     cursor.execute("""
         SELECT ID, class, baseValue, parameterA, parameterB, parameterC
         FROM Parameter
-        WHERE angleIn800 IS NULL
+        WHERE angleIn1 IS NULL
         ORDER BY ID ASC
     """)
     all_rows = cursor.fetchall()

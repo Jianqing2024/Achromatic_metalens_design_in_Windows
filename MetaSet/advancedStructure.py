@@ -35,7 +35,7 @@ def swichWaveLength(fdtd, wav, name):
     fdtd.set("wavelength stop", wav)
     
 class MetaEngine:
-    def __init__(self, hide=True, name='test', parallel=False, template=False):
+    def __init__(self, hide=True, name='test', parallel=False, template=False, SpectralRange=[0.532e-6, 0.800e-6]):
         lumapi_path = "D:\\Program Files\\Lumerical\\v241\\api\\python\\lumapi.py"
 
         spec = importlib.util.spec_from_file_location("lumapi", lumapi_path)
@@ -65,10 +65,13 @@ class MetaEngine:
                 self.fdtd.save(filename)
             
         self.template = template
+        self.waveMin = SpectralRange[0]
+        self.waveMax = SpectralRange[1]
+        print(f"Spectral range : {self.waveMin} - {self.waveMax}")
         
     def materialSet(self):
         if self.template:
-            self.baseMaterial = "TiO2_2023"
+            self.baseMaterial = "GaN"
             self.strMaterial = "SiO2 (Glass) - Palik"
             identification = self.fdtd.materialexists(self.baseMaterial)
             if not identification:
@@ -87,7 +90,7 @@ class MetaEngine:
         setMetaFdtd(self.fdtd, p, p, self.highEst, -0.5e-6)
         classicMonitorGroup(self.fdtd, p, p, self.highEst)
         addMetaBase(self.fdtd, self.baseMaterial, p, p, 1e-6)
-        addMetaSource(self.fdtd, p, p, -0.25e-6, [0.532e-6, 0.8e-6])
+        addMetaSource(self.fdtd, p, p, -0.25e-6, [self.waveMin, self.waveMax])
         
     def structureBuild(self, strClass, parameter, h):
         if h > self.highEst:

@@ -14,8 +14,8 @@ def Data_Quality_Assessment():
 
     # 查询所有数据
     query = f"""
-        SELECT baseValue, angleIn532, angleIn800 FROM {table_name}
-        WHERE angleIn532 IS NOT NULL AND angleIn800 IS NOT NULL
+        SELECT baseValue, angleIn5, angleIn1 FROM {table_name}
+        WHERE angleIn5 IS NOT NULL AND angleIn1 IS NOT NULL
     """
     cursor.execute(query)
     rows = cursor.fetchall()
@@ -108,7 +108,7 @@ def Task_Database_Module(mainValue):
         parameterA REAL NOT NULL,
         parameterB REAL,
         parameterC REAL,
-        angleIn800 REAL,
+        angleIn1 REAL,
         Dispersion REAL
         )
         """)
@@ -124,7 +124,7 @@ def Task_Database_Module(mainValue):
     source_cursor = source_conn.cursor()
     
     source_cursor.execute(f"""
-    SELECT baseValue, parameterA, parameterB, parameterB, angleIn532, angleIn800 FROM Parameter
+    SELECT baseValue, parameterA, parameterB, parameterB, angleIn5, angleIn1 FROM Parameter
     WHERE baseValue = {mainValue} AND angleIn532 IS NOT NULL AND angleIn800 IS NOT NULL
     """)
     rows = source_cursor.fetchall()
