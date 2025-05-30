@@ -10,6 +10,8 @@ def setMetaFdtd(fdtd, size_x, size_y, zmax, zmin):
         zmin (double): 字面
     """
     fdtd.addfdtd()
+    fdtd.set("x", 0)
+    fdtd.set("y", 0)
 
     fdtd.set("x span", size_x)
     fdtd.set("y span", size_y)

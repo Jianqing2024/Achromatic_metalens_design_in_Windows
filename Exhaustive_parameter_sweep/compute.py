@@ -102,6 +102,7 @@ def STRUCT(meta, group, conn, cursor, RUN_PATH):
 def ParallelComput(numParallel, SpectralRange):
     RUN_PATH = os.getcwd()
     DB_PATH = os.path.join(RUN_PATH, "data", "Main.db")
+    SIMULATION_PATH = os.path.join(RUN_PATH, "Temporary_computation_folder")
     
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
@@ -155,12 +156,12 @@ def ParallelComput(numParallel, SpectralRange):
 
         # 一组满了就执行
         if len(group) == numParallel:
-            STRUCT(meta, group, conn, cursor, RUN_PATH)
+            STRUCT(meta, group, conn, cursor, SIMULATION_PATH)
             group = []
 
     # 处理剩余不足 numParallel 的最后一组
     if group:
-        STRUCT(meta, group, conn, cursor, RUN_PATH)
+        STRUCT(meta, group, conn, cursor, SIMULATION_PATH)
 
     conn.close()
     

@@ -3,7 +3,7 @@ from data import dataBaseCreat as data
 ## 是否开启并行
 ## 是否初始化
 parallel=True
-initial=False
+initial=True
 template=True
 SpectralRange=[0.5e-6,0.6e-6]
 

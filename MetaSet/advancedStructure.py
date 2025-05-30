@@ -71,7 +71,8 @@ class MetaEngine:
         
     def materialSet(self):
         if self.template:
-            self.baseMaterial = "GaN"
+            # self.baseMaterial = "GaN"
+            self.baseMaterial = "TiO2_2023"
             self.strMaterial = "SiO2 (Glass) - Palik"
             identification = self.fdtd.materialexists(self.baseMaterial)
             if not identification:
@@ -141,11 +142,12 @@ class MetaEngine:
         Ex = Ex.ravel()
 
         phase_array = np.angle(np.array(Ex))
-        unwrapped = np.unwrap(phase_array)
+        #unwrapped = np.unwrap(phase_array)
 
-        unwrapped -= 2 * np.pi * np.floor(unwrapped[0] / (2 * np.pi))
+        #unwrapped -= 2 * np.pi * np.floor(unwrapped[0] / (2 * np.pi))
 
-        Ex = unwrapped.tolist()
+        #Ex = unwrapped.tolist()
+        Ex = phase_array.tolist()
         Trans = Trans.tolist()
 
         self.semi_Reset()
