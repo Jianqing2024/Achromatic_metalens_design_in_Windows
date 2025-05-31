@@ -62,42 +62,52 @@ def Jobs_Preparation(meta, group, RUN_PATH):
         meta.fdtd.addjob(Absolute_name)
         
     return dic
-        
-def Jobs_Confirmation(meta, num):
-    JobsListt=meta.fdtd.listjobs()
-    # 正则表达式：匹配斜杠后面的文件名（以 .fsp 结尾）
-    pattern = r'([^\\/]+\.fsp)'
-    filenames = re.findall(pattern, JobsListt)
-
-    if len(filenames) == num:
-        Jobs=True
-    else:
-        Jobs=False
-    return Jobs
 
 def STRUCT(meta, group, conn, cursor, RUN_PATH):
-    
     dic=Jobs_Preparation(meta, group, RUN_PATH)
-    Job=Jobs_Confirmation(meta, len(group))
-    
-    if Job:
-        meta.fdtd.runjobs("FDTD")
+    meta.fdtd.runjobs("FDTD")
+    try:
         for Absolute_name, id in dic.items():
-            Ex, Trans = meta.StandardDataAcquisition(Absolute_name)
+            Ex, Trans = StandardDataAcquisition(meta, Absolute_name)
             dataInput_Parallel(Ex, Trans, id, conn, cursor)
-    else:
-        print("A Jobs issue occurred; attempting to resolve it by resetting.")
-        meta.fdtd.clearjobs()
-        dic=Jobs_Preparation(meta, group, RUN_PATH)
-        Job2=Jobs_Confirmation(meta, len(group))
+    except ad.MetaError as e:
         
-        assert Job2, "Jobs still encountering issues. Stopped to avoid more complex errors."
+        if "no d-card named plane" in str(e):
+            print("A Jobs issue occurred; attempting to resolve it by resetting.")
+            
+            try:
+                dic=Jobs_Preparation(meta, group, RUN_PATH)
+                meta.fdtd.runjobs("FDTD")
+                for Absolute_name, id in dic.items():
+                    Ex, Trans = StandardDataAcquisition(meta, Absolute_name)
+                    dataInput_Parallel(Ex, Trans, id, conn, cursor)
+            except ad.MetaError as e:
+                print("Jobs still encountering issues. Stopped to avoid more complex errors.")
+            else:
+                print("Issue resolved, rerunning now.")
+                
+        else:
+            raise
 
-        print("Issue resolved, rerunning now.")
-        meta.fdtd.runjobs("FDTD")
-        for Absolute_name, id in dic.items():
-            Ex, Trans = meta.StandardDataAcquisition(Absolute_name)
-            dataInput_Parallel(Ex, Trans, id, conn, cursor) 
+def StandardDataAcquisition(meta, name):
+    meta.fdtd.load(name)
+    Trans = meta.fdtd.transmission("plane")
+    Trans = Trans.ravel()
+
+    Ex = meta.fdtd.getresult("point", "Ex")
+    Ex = Ex.ravel()
+
+    phase_array = np.angle(np.array(Ex))
+    #unwrapped = np.unwrap(phase_array)
+
+    #unwrapped -= 2 * np.pi * np.floor(unwrapped[0] / (2 * np.pi))
+
+    #Ex = unwrapped.tolist()
+    Ex = phase_array.tolist()
+    Trans = Trans.tolist()
+
+    meta.semi_Reset()
+    return Ex, Trans
 
 def ParallelComput(numParallel, SpectralRange):
     RUN_PATH = os.getcwd()
