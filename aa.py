@@ -3,7 +3,7 @@ import sqlite3
 import optuna
 import os
 from tqdm import tqdm
-# Pylance会由于不知名bug异常报错，似乎有一些包冲突，不影响实际运行
+# Pylance会由于不知名bug异常报错，似乎有一些PylanceBUG，不影响实际运行
 from scipy.spatial import cKDTree # type: ignore
 
 def calculate(shift0, shift1, shift2):
@@ -82,7 +82,7 @@ optuna.logging.set_verbosity(optuna.logging.WARNING)
 # 创建 study
 study = optuna.create_study(direction="minimize")
 
-# 用 tqdm 显示优雅进度条
+# 用 tqdm 显示进度条
 N_TRIALS = 500
 for _ in tqdm(range(N_TRIALS), desc="Optuna 优化中"):
     study.optimize(objective, n_trials=1, callbacks=[logging_callback])

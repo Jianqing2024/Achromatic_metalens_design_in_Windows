@@ -1,2 +1,4 @@
 R=0.5e-3
 f=1.25e-3
+WavMax=0.6e-6
+WavMin=0.5e-6
