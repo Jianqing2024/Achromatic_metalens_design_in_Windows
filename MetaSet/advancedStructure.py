@@ -4,16 +4,6 @@ import importlib.util
 import numpy as np
 import os
 
-_lumapi_path = r"D:\Program Files\Lumerical\v241\api\python\lumapi.py"
-_spec = importlib.util.spec_from_file_location("lumapi", _lumapi_path)
-if _spec is None or _spec.loader is None:
-    raise ImportError("无法加载 lumapi 模块")
-_lumapi = importlib.util.module_from_spec(_spec)
-_spec.loader.exec_module(_lumapi)
-
-# 提取原始异常类
-_LumApiError = _lumapi.LumApiError
-
 def fishnetset(fdtd, material, h, l, w, r, *, name="newGroup"):
     fdtd.addstructuregroup()
     fdtd.set("name", name)
@@ -141,9 +131,3 @@ class MetaEngine:
     def Reset(self):
         self.fdtd.switchtolayout()
         self.fdtd.deleteall()
-        
-        
-#LumApiError: 'in transmission, no d-card named plane was found with the necessary data'
-class MetaError(_LumApiError):
-    """用于在主程序中捕捉特定 LumApiError 的自定义异常"""
-    pass

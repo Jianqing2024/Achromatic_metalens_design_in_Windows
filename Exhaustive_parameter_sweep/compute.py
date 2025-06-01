@@ -70,7 +70,7 @@ def STRUCT(meta, group, conn, cursor, RUN_PATH):
         for Absolute_name, id in dic.items():
             Ex, Trans = StandardDataAcquisition(meta, Absolute_name)
             dataInput_Parallel(Ex, Trans, id, conn, cursor)
-    except ad.MetaError as e:
+    except Exception as e:
         
         if "no d-card named plane" in str(e):
             print("A Jobs issue occurred; attempting to resolve it by resetting.")
@@ -81,7 +81,7 @@ def STRUCT(meta, group, conn, cursor, RUN_PATH):
                 for Absolute_name, id in dic.items():
                     Ex, Trans = StandardDataAcquisition(meta, Absolute_name)
                     dataInput_Parallel(Ex, Trans, id, conn, cursor)
-            except ad.MetaError as e:
+            except Exception as e:
                 print("Jobs still encountering issues. Stopped to avoid more complex errors.")
             else:
                 print("Issue resolved, rerunning now.")

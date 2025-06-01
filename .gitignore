@@ -12,9 +12,6 @@ venv/
 # 忽略 Jupyter 的检查点
 .ipynb_checkpoints/
 
-# 忽略 VS Code 的工作区配置
-.vscode/
-
 # 忽略除 data 文件夹外的所有 .fsp 文件
 *.fsp
 !data/*.fsp
