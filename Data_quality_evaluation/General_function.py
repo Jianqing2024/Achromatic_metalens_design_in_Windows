@@ -1,5 +1,39 @@
 import numpy as np
 import os
+import sqlite3
+
+class Command:
+    def __init__(self, mainValue):
+        # 初始化
+        self.mainValue = mainValue
+        
+        self.TargetPhase:list[float] = []
+        
+        self.r_target, self.f_target, self.WavMax, self.WavMin = Read_Parameter()
+        self.Wav = np.linspace(self.WavMax, self.WavMin, 5)
+
+        # 读取数据库资源进行计算
+        base_dir = os.getcwd()
+        DB_PATH = os.path.join(base_dir, "data", "Main.db")
+        uri_path = f"file:{DB_PATH}?mode=ro"
+        conn = sqlite3.connect(uri_path, uri=True)
+        cursor = conn.cursor()
+
+        cursor.execute('SELECT * FROM BaseParameter WHERE baseValue=(?)', (self.mainValue,))
+        row = cursor.fetchone()
+        
+        self.single = row[1]
+        
+        self.r, self.N = Exact_Value(self.r_target, self.single)
+        
+        self.R = np.linspace(0, self.r, self.N)
+
+        for i in range(5):
+            self.TargetPhase.append(Target_Phase_Standrad_1D(self.R, self.Wav[i], self.f_target))
+            
+        conn.close()
+
+#######################################################################################################################################################
 
 def Target_Phase_Standrad_1D(x: np.ndarray, wav, f):
     ftx = -(2 * np.pi) / wav * (np.sqrt(x**2 + f**2) - f)

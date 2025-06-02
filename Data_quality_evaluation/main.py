@@ -1,4 +1,5 @@
 from .Database_Manager import *
+from .Simulation_evaluation import *
 
 def Numerical_evaluation():
     ## 数值评估
@@ -11,7 +12,9 @@ def Numerical_evaluation():
     #  录入到任务数据库
     
 def Simulation_Evaluation(baseValue):
-    ## 根据主值和设置值计算
-    #  根据主值和设计值计算半径精确值和N
-    
+    ## 根据主值和设置值初始化参数对象
+    COM = Command(baseValue)
+    #  使用optuna优化
+    BestParameter, BestValue = Optimizer(COM)
+    print(BestParameter, BestValue)
     ## 建模并计算，输出为图片
