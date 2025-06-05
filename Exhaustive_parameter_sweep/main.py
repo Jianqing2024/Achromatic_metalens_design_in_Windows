@@ -66,10 +66,10 @@ def main_for_EPS_NotParallel(template, SpectralRange):
     ## 根据任务目录计算
     Comput(ids, template, SpectralRange)
 
-def main_for_EPS_Parallel(Parallelnum, SpectralRange):
+def main_for_EPS_Parallel(Parallelnum):
     ## 扫描库，重新计算任务目录
     ids=resumeTaskDirectory()
     #  计算重续任务量
     resumeCount()
     ## 根据任务目录计算
-    ParallelComput(Parallelnum, SpectralRange)
+    ParallelComput(Parallelnum)

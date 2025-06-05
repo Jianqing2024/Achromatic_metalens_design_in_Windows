@@ -2,7 +2,7 @@ import sqlite3
 import os
 import numpy as np
 
-def DatabaseCreat(SpectralRange):
+def DatabaseCreat(SpectralRange, material):
     base_dir = os.getcwd()
     DB_PATH = os.path.join(base_dir, "data", "Main.db")
 
@@ -39,19 +39,22 @@ def DatabaseCreat(SpectralRange):
         )
         """)
     
+    cursor.execute("DROP TABLE IF EXISTS SpectralParameters;")
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS SpectralParameters (
         wav1 REAL NOT NULL,
         wav2 REAL NOT NULL,
         wav3 REAL NOT NULL,
         wav4 REAL NOT NULL,
-        wav5 REAL NOT NULL
+        wav5 REAL NOT NULL,
+        material TEXT
         )
         """)
     
-    Range=np.linspace(SpectralRange[0], SpectralRange[1], 5)
-    cursor.execute("INSERT INTO SpectralParameters (wav1, wav2, wav3, wav4, wav5) VALUES (?, ?, ?, ?, ?)", tuple(Range))
-
+    Range = np.linspace(SpectralRange[0], SpectralRange[1], 5)
+    cursor.execute(
+        "INSERT INTO SpectralParameters (wav1, wav2, wav3, wav4, wav5, material) VALUES (?, ?, ?, ?, ?, ?)",
+        tuple(Range) + (material,))
 
     # 提交更改并关闭连接
     conn.commit()

@@ -9,22 +9,17 @@ def dataBaseClean():
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
 
-    # 获取所有用户自建的表名（排除SQLite系统表）
-    cursor.execute("""
-        SELECT name FROM sqlite_master
-        WHERE type='table' AND name NOT LIKE 'sqlite_%';
-    """)
-    tables = cursor.fetchall()
+    # 清理指定的两个表
+    target_tables = ['Parameter', 'BaseParameter']
 
-    # 遍历每个表，执行 DELETE 语句
-    for (table_name,) in tables:
+    for table_name in target_tables:
         print(f"Clearing table: {table_name}")
         cursor.execute(f"DELETE FROM {table_name};")  # 删除表中所有数据
         cursor.execute(f"DELETE FROM sqlite_sequence WHERE name='{table_name}';")  # 如果有自增ID，重置
 
     conn.commit()
     conn.close()
-
+    
 def defineMainvalue(P,H):
     ## 链接到主数据库
     base_dir = os.getcwd()

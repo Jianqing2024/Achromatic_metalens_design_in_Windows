@@ -6,6 +6,7 @@ from tqdm import tqdm
 # Pylance会由于不知名bug异常报错，似乎有一些PylanceBUG，不影响实际运行
 from scipy.spatial import cKDTree # type: ignore
 from .General_function import *
+from MetaSet import advancedStructure as ad
 
 def Optimizer(COM):
     def logging_callback(study, trial):
@@ -51,7 +52,6 @@ def OneD_ObjectiveFunction(shift0, shift1, shift2, shift3, shift4, COM):
     # 拼接成查询点 (N, 5)
     query_points = np.column_stack(ftx)
 
-    # 查询时连带结构 ID 一起取出
     cursor.execute('SELECT angleIn1, angleIn2, angleIn3, angleIn4, angleIn5 FROM Parameter WHERE baseValue=(?)', (COM.mainValue,))
     rows = cursor.fetchall()
 
@@ -66,97 +66,106 @@ def OneD_ObjectiveFunction(shift0, shift1, shift2, shift3, shift4, COM):
     diff=np.sum(distances)
     return diff
 
+def OneD_Index(parameter, COM):
+    shifts = [parameter[f'shift{i}'] for i in range(5)]
+    
+    base_dir = os.getcwd()
+    DB_PATH = os.path.join(base_dir, "data", "Main.db")
 
+    uri_path = f"file:{DB_PATH}?mode=ro"
 
-"""        
-    elif Command.Controller == 2: # 输出远场相位值
-        base_dir = os.getcwd()
-        DB_PATH = os.path.join(base_dir, "data", "Main.db")
+    conn = sqlite3.connect(uri_path, uri=True)
+    cursor = conn.cursor()
 
-        uri_path = f"file:{DB_PATH}?mode=ro"
+    ftx = []
 
-        conn = sqlite3.connect(uri_path, uri=True)
-        cursor = conn.cursor()
+    for i in range(5):
+        ftx.append(COM.TargetPhase[i]+shifts[i])
 
-        cursor.execute('SELECT * FROM BaseParameter WHERE baseValue=(?)', (main,))
-        row = cursor.fetchone()
+    # 拼接成查询点 (N, 5)
+    query_points = np.column_stack(ftx)
+
+    # 查询时连带结构 ID 一起取出
+    cursor.execute('SELECT id, angleIn1, angleIn2, angleIn3, angleIn4, angleIn5 FROM Parameter WHERE baseValue=(?)', (COM.mainValue,))
+    rows = cursor.fetchall()
+
+    # 拆分结构 ID 和相位数据
+    ids = [row[0] for row in rows]                   # 结构 ID 列表，长度为 M
+    points = np.array([row[1:] for row in rows])     # 相位点组成的数组，形状为 (M, 5)
+
+    # 构建 KD 树
+    tree = cKDTree(points, leafsize=40)
+    conn.close()
+
+    # 最近邻查询 (N 个查询点，每个返回 1 个最近邻)
+    distances, indices = tree.query(query_points, k=1)
+
+    # 用索引反查数据库结构 ID（返回 N 个结构点的 ID）
+    matched_ids = [ids[i] for i in indices]
+    return matched_ids
+
+def OneD_ModelAndRun(matched_ids, COM):
+    COM.D = np.concatenate([-np.flip(COM.R), COM.R])
+    matched_ids = np.concatenate([np.flip(matched_ids), matched_ids])
+    
+    base_dir = os.getcwd()
+    DB_PATH = os.path.join(base_dir, "data", "Main.db")
+
+    uri_path = f"file:{DB_PATH}?mode=ro"
+
+    conn = sqlite3.connect(uri_path, uri=True)
+    cursor = conn.cursor()
+    
+    meta = ad.MetaEngine(parallel=False, template=True, SpectralRange=[COM.WavMin, COM.WavMax])
+    
+    #  建立fdtd区域
+    meta.fdtd.addfdtd()
+    meta.fdtd.set("x",0)
+    meta.fdtd.set("y",0)
+    meta.fdtd.set("x span", 2*COM.r+COM.single)
+    meta.fdtd.set("y span", COM.single)
+    meta.fdtd.set("z max", COM.f_target+10e-6)
+    meta.fdtd.set("z min", -0.5e-6)
+    
+    #  建立基底
+    meta.fdtd.addrect()
+    meta.fdtd.set("name","base")
+    meta.fdtd.set("x", 0)
+    meta.fdtd.set("y", 0)
+    meta.fdtd.set("material", "SiO2 (Glass) - Palik")
+    meta.fdtd.set("x span", 2*COM.r+COM.single)
+    meta.fdtd.set("y span", COM.single)
+    meta.fdtd.set("z min", -0.5e-6)
+    meta.fdtd.set("z max", 0)
+    
+    #  建立光源。请在运行时手动调试波长
+    meta.fdtd.addplane()
+    meta.fdtd.set("x span", 2*COM.r+COM.single)
+    meta.fdtd.set("y span", COM.single)
+    meta.fdtd.set("wavelength start", COM.WavMin)
+    meta.fdtd.set("wavelength stop", COM.WavMax)
+    
+    #  建立监视器
+    meta.fdtd.addpower(name="Monitor")
+    meta.fdtd.set("monitor type", "2D Y-normal")
+    meta.fdtd.set("x", 0)
+    meta.fdtd.set("x span", 2*COM.r+COM.single)
+    meta.fdtd.set("y", 0)
+    meta.fdtd.set("z min", 1e-6)
+    meta.fdtd.set("z max", COM.f_target+10e-6)
+    
+    meta.materialSet()
+    
+    for i, id in enumerate(matched_ids):
+        cursor.execute("SELECT class, parameterA, parameterB, parameterC FROM Parameter WHERE ID = ?", (int(id),))
         
-        single = row[1]
+        result = cursor.fetchone()
         
-        ApproximateR, f, WavMax, WavMin = Read_Parameter()
-        Wav = np.linspace(WavMax, WavMin, 5)
-        r, N = Exact_Value(ApproximateR, single)
-        l = np.linspace(0, r, N)
+        strClass, parameterA, parameterB, parameterC = result
+        x = COM.D[i]
+        print(COM.H)
+        meta.structureBuild_ForDataEvaluation(strClass, [parameterA, parameterB, parameterC], COM.H, i)
+        meta.fdtd.select(str(i))
+        meta.fdtd.set("x", x)
         
-        ftx = []
-        shift = [shift0, shift1, shift2, shift3, shift4]
-
-        for i in range(5):
-            ftx.append(Target_Phase_Standrad_1D(l, Wav[i], f + shiftF) + shift[i])
-
-        # 拼接成查询点 (N, 5)
-        query_points = np.column_stack(ftx)
-
-        # 查询时连带结构 ID 一起取出
-        cursor.execute('SELECT id, angleIn1, angleIn2, angleIn3, angleIn4, angleIn5 FROM Parameter WHERE baseValue=(?)', (main,))
-        rows = cursor.fetchall()
-
-        # 拆分结构 ID 和相位数据
-        ids = [row[0] for row in rows]                   # 结构 ID 列表，长度为 M
-        points = np.array([row[1:] for row in rows])     # 相位点组成的数组，形状为 (M, 5)
-
-        # 构建 KD 树
-        tree = cKDTree(points, leafsize=40)
-        conn.close()
-        
-        distances, indices = tree.query(query_points, k=1)
-        closest_phase = points[indices]
-        return closest_phase
-        
-    elif Command.Controller == 3: # 输出Index
-        base_dir = os.getcwd()
-        DB_PATH = os.path.join(base_dir, "data", "Main.db")
-
-        uri_path = f"file:{DB_PATH}?mode=ro"
-
-        conn = sqlite3.connect(uri_path, uri=True)
-        cursor = conn.cursor()
-
-        cursor.execute('SELECT * FROM BaseParameter WHERE baseValue=(?)', (main,))
-        row = cursor.fetchone()
-        
-        single = row[1]
-        
-        ApproximateR, f, WavMax, WavMin = Read_Parameter()
-        Wav = np.linspace(WavMax, WavMin, 5)
-        r, N = Exact_Value(ApproximateR, single)
-        l = np.linspace(0, r, N)
-        
-        ftx = []
-        shift = [shift0, shift1, shift2, shift3, shift4]
-
-        for i in range(5):
-            ftx.append(Target_Phase_Standrad_1D(l, Wav[i], f + shiftF) + shift[i])
-
-        # 拼接成查询点 (N, 5)
-        query_points = np.column_stack(ftx)
-
-        # 查询时连带结构 ID 一起取出
-        cursor.execute('SELECT id, angleIn1, angleIn2, angleIn3, angleIn4, angleIn5 FROM Parameter WHERE baseValue=(?)', (main,))
-        rows = cursor.fetchall()
-
-        # 拆分结构 ID 和相位数据
-        ids = [row[0] for row in rows]                   # 结构 ID 列表，长度为 M
-        points = np.array([row[1:] for row in rows])     # 相位点组成的数组，形状为 (M, 5)
-
-        # 构建 KD 树
-        tree = cKDTree(points, leafsize=40)
-        conn.close()
-
-        # 最近邻查询 (N 个查询点，每个返回 1 个最近邻)
-        distances, indices = tree.query(query_points, k=1)
-
-        # 用索引反查数据库结构 ID（返回 N 个结构点的 ID）
-        matched_ids = [ids[i] for i in indices]
-        return matched_ids
-"""
+    meta.fdtd.save("OneD.fsp")

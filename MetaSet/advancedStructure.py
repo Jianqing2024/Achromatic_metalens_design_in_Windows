@@ -68,6 +68,7 @@ class MetaEngine:
         self.waveMin = SpectralRange[0]
         self.waveMax = SpectralRange[1]
         print(f"Spectral range : {self.waveMin} - {self.waveMax}")
+        self.highEst=0.8e-6
         
     def materialSet(self):
         if self.template:
@@ -87,7 +88,6 @@ class MetaEngine:
         print(f"BaseMaterial : {self.baseMaterial}\nStrMaterial : {self.strMaterial}")
         
     def baseBuild(self, p):
-        self.highEst=0.8e-6
         setMetaFdtd(self.fdtd, p, p, self.highEst, -0.5e-6)
         classicMonitorGroup(self.fdtd, p, p, self.highEst)
         addMetaBase(self.fdtd, self.baseMaterial, p, p, 1e-6)
@@ -131,3 +131,19 @@ class MetaEngine:
     def Reset(self):
         self.fdtd.switchtolayout()
         self.fdtd.deleteall()
+        
+    def structureBuild_ForDataEvaluation(self, strClass, parameter, h, id):
+        if h > self.highEst:
+            raise ValueError("Structure height exceeds the maximum height of the built-in FDTD region")
+        if strClass == 1:
+            r = parameter[0]
+            addMetaCircle(self.fdtd, self.strMaterial, r, h, name=str(id))
+        elif strClass == 2:
+            l = parameter[0]
+            addMetaRect(self.fdtd, self.strMaterial, l, l, h, name=str(id))
+        elif strClass == 3:
+            l, w = parameter[0], parameter[1]
+            cross(self.fdtd, self.strMaterial, h, l, w, name=str(id))
+        elif strClass == 4:
+            l, w, r = parameter[0], parameter[1], parameter[2]
+            fishnetset(self.fdtd, self.strMaterial, h, l, w, r, name=str(id))

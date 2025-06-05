@@ -109,15 +109,18 @@ def StandardDataAcquisition(meta, name):
     meta.semi_Reset()
     return Ex, Trans
 
-def ParallelComput(numParallel, SpectralRange):
+def ParallelComput(numParallel):
     RUN_PATH = os.getcwd()
     DB_PATH = os.path.join(RUN_PATH, "data", "Main.db")
     SIMULATION_PATH = os.path.join(RUN_PATH, "Temporary_computation_folder")
     
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
+    
+    cursor.execute("SELECT wav1, wav5 FROM SpectralParameters")
+    wavMax, wavMin = cursor.fetchone()
 
-    meta = ad.MetaEngine(parallel=True, template=True, SpectralRange=SpectralRange)
+    meta = ad.MetaEngine(parallel=True, template=True, SpectralRange=[wavMin, wavMax])
     meta.materialSet()
 
     # 查询所有尚未处理（angleIn1 为 NULL）的行

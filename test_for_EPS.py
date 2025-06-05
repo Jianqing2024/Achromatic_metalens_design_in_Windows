@@ -5,14 +5,17 @@ from data import dataBaseCreat as data
 parallel=True
 initial=False
 template=True
-SpectralRange=[0.5e-6,0.6e-6]
+
+#  修改材料和波段后请在计算部分手动检验，此处仅作提示
+material = 'TiO2_2023'
+SpectralRange = [0.6e-6,0.5e-6]
 
 if initial:
-    data.DatabaseCreat(SpectralRange)
+    data.DatabaseCreat(SpectralRange, material)
     DIC=main.Initial_structure_directory()
     main.main_for_EPS_Initialization(DIC)
 
 if parallel:
-    main.main_for_EPS_Parallel(4, SpectralRange)
+    main.main_for_EPS_Parallel(4)
 else:
     main.main_for_EPS_NotParallel(template, SpectralRange)

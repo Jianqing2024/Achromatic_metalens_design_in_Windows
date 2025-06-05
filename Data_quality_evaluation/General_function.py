@@ -3,30 +3,43 @@ import os
 import sqlite3
 
 class Command:
+    #  定义一个用于在不同的模块间传递参数的对象
     def __init__(self, mainValue):
         # 初始化
+        self.D = np.array([])
         self.mainValue = mainValue
         
         self.TargetPhase:list[float] = []
         
-        self.r_target, self.f_target, self.WavMax, self.WavMin = Read_Parameter()
-        self.Wav = np.linspace(self.WavMax, self.WavMin, 5)
+        self.r_target, self.f_target, self.WavMin, self.WavMax = Read_Parameter()
+        self.Wav = np.linspace(self.WavMin, self.WavMax, 5)
 
-        # 读取数据库资源进行计算
+        # 读取数据库
         base_dir = os.getcwd()
         DB_PATH = os.path.join(base_dir, "data", "Main.db")
         uri_path = f"file:{DB_PATH}?mode=ro"
         conn = sqlite3.connect(uri_path, uri=True)
         cursor = conn.cursor()
 
-        cursor.execute('SELECT * FROM BaseParameter WHERE baseValue=(?)', (self.mainValue,))
+        cursor.execute('SELECT parameterA, parameterB FROM BaseParameter WHERE baseValue=(?)', (self.mainValue,))
         row = cursor.fetchone()
         
-        self.single = row[1]
+        self.single = row[0]        
+        self.H = row[1]
         
+        cursor.execute("SELECT material FROM SpectralParameters")
+        self.material = cursor.fetchone()[0]
+        
+        #  波长段校验
+        cursor.execute("SELECT wav1, wav5 FROM SpectralParameters")
+        wavmax, wavmin = cursor.fetchone()
+
+        assert wavmax==self.WavMax and wavmin==self.WavMin, "The set frequency does not match the database frequency; please re-verify."
+        
+        #  与之前的定义不同，N指的是一个半径上的数量，而非一条直径上的数量
         self.r, self.N = Exact_Value(self.r_target, self.single)
         
-        self.R = np.linspace(0, self.r, self.N)
+        self.R = np.linspace(0.5*self.single, self.r, self.N)
 
         for i in range(5):
             self.TargetPhase.append(Target_Phase_Standrad_1D(self.R, self.Wav[i], self.f_target))
@@ -50,9 +63,9 @@ def Read_Parameter():
 
     r = np.float64(lines[0].split('=')[1])
     f = np.float64(lines[1].split('=')[1])
-    WavMax = np.float64(lines[2].split('=')[1])
-    WavMin = np.float64(lines[3].split('=')[1])
-    return r, f, WavMax, WavMin
+    WavMin = np.float64(lines[2].split('=')[1])
+    WavMax = np.float64(lines[3].split('=')[1])
+    return r, f, WavMin, WavMax
 
 def Exact_Value(ApproximateR, single):
     approx_N = round(ApproximateR / single)
