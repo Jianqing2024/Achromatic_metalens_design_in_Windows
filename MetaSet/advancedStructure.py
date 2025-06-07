@@ -37,6 +37,7 @@ def swichWaveLength(fdtd, wav, name):
 class MetaEngine:
     def __init__(self, hide=True, name='test', parallel=False, template=False, SpectralRange=[0.532e-6, 0.800e-6]):
         lumapi_path = "D:\\Program Files\\Lumerical\\v241\\api\\python\\lumapi.py"
+        #lumapi_path = "D:\\software\\AnsysOptic\\Lumerical\\v231\\api\\python\\lumapi.py"
 
         spec = importlib.util.spec_from_file_location("lumapi", lumapi_path)
         if spec is None or spec.loader is None:

@@ -6,14 +6,14 @@ def Initial_structure_directory():
     use_class_2=True
     use_class_3=True
     use_class_4=True
-    single_P=True
-    single_H=True
+    single_P=False
+    single_H=False
     
     DIC = {}
 
     # 主参数设置
-    DIC['P'] = np.array([0.4e-6]) if single_P else np.linspace(0.3e-6, 0.5e-6, 4)
-    DIC['H'] = np.array([0.7e-6])  if single_H else np.linspace(0.5e-6, 0.8e-6, 4)
+    DIC['P'] = np.array([0.4e-6]) if single_P else np.linspace(0.3e-6, 0.5e-6, 3)
+    DIC['H'] = np.array([0.7e-6])  if single_H else np.linspace(0.5e-6, 0.8e-6, 3)
 
     # 类别1
     if use_class_1:

@@ -118,7 +118,7 @@ def ParallelComput(numParallel):
     cursor = conn.cursor()
     
     cursor.execute("SELECT wav1, wav5 FROM SpectralParameters")
-    wavMax, wavMin = cursor.fetchone()
+    wavMin, wavMax = cursor.fetchone()
 
     meta = ad.MetaEngine(parallel=True, template=True, SpectralRange=[wavMin, wavMax])
     meta.materialSet()

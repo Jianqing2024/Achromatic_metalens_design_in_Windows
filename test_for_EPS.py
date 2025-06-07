@@ -3,12 +3,12 @@ from data import dataBaseCreat as data
 ## 是否开启并行
 ## 是否初始化
 parallel=True
-initial=False
+initial=True
 template=True
 
 #  修改材料和波段后请在计算部分手动检验，此处仅作提示
 material = 'TiO2_2023'
-SpectralRange = [0.6e-6,0.5e-6]
+SpectralRange = [0.5e-6,0.8e-6]
 
 if initial:
     data.DatabaseCreat(SpectralRange, material)
