@@ -9,22 +9,24 @@ def setMetaFdtd(fdtd, size_x, size_y, zmax, zmin):
         zmax (double): 字面
         zmin (double): 字面
     """
-    fdtd.addfdtd()
-    fdtd.set("x", 0)
-    fdtd.set("y", 0)
+    str = f"""
+    addfdtd;
+    set("x", 0);
+    set("y", 0);
 
-    fdtd.set("x span", size_x)
-    fdtd.set("y span", size_y)
-    fdtd.set("z max", zmax)
-    fdtd.set("z min", zmin)
+    set("x span", {size_x});
+    set("y span", {size_y});
+    set("z max", {zmax});
+    set("z min", {zmin});
 
-    # 设置边界条件
-    fdtd.set("x min bc", "periodic")
-    fdtd.set("x max bc", "periodic")
-    fdtd.set("y min bc", "periodic")
-    fdtd.set("y max bc", "periodic")
-    fdtd.set("z min bc", "PML")
-    fdtd.set("z max bc", "PML")
+    set("x min bc", "periodic");
+    set("x max bc", "periodic");
+    set("y min bc", "periodic");
+    set("y max bc", "periodic");
+    set("z min bc", "PML");
+    set("z max bc", "PML");
+    """
+    fdtd.eval(str)
 
 def addMetaBase(fdtd, material, size_x, size_y, size_z, *,name="base"):
     """生成一个标准的基底结构, 其为一个立方体结构，
@@ -39,17 +41,20 @@ def addMetaBase(fdtd, material, size_x, size_y, size_z, *,name="base"):
         size_z (float): z 方向尺寸
         name (str): 结构名称，默认为 "base"
     """
-    fdtd.addrect()
-    fdtd.set("name",name)
-    fdtd.set("x", 0)
-    fdtd.set("y", 0)
-    fdtd.set("x span", size_x*2)
-    fdtd.set("y span", size_y*2)
+    str = f"""
+    addrect;
+    set("name","{name}");
+    set("x", 0);
+    set("y", 0);
+    set("x span", {size_x*2});
+    set("y span", {size_y*2});
   
-    fdtd.set("z max", 0)
-    fdtd.set("z min", 0-size_z)
+    set("z max", 0);
+    set("z min", {0-size_z});
     
-    fdtd.set("material", material)    
+    set("material", "{material}");
+    """
+    fdtd.eval(str)
     
 def addMetaSource(fdtd, size_x, size_y, z, wavelength, *, name="source"):
     """建立平面波光源,以z轴为对称轴
@@ -61,22 +66,36 @@ def addMetaSource(fdtd, size_x, size_y, z, wavelength, *, name="source"):
         z (double): 字面
         wavelength (double): 字面
     """
-    fdtd.addplane()
-    fdtd.set("x", 0)
-    fdtd.set("y", 0)
-    fdtd.set("z", z)
-    
-    fdtd.set("x span", size_x)
-    fdtd.set("y span", size_y)
     
     if len(wavelength)==1:
-        fdtd.set("wavelength start", wavelength)
-        fdtd.set("wavelength stop", wavelength)
-    else:
-        fdtd.set("wavelength start", wavelength[0])
-        fdtd.set("wavelength stop", wavelength[1])
+        str = f"""        
+        addplane;
+        set("x", 0);
+        set("y", 0);
+        set("z", {z});
     
-    fdtd.set("name",name)
+        set("x span", {size_x});
+        set("y span", {size_y});
+        set("wavelength start", {wavelength});
+        set("wavelength stop", {wavelength});
+        set("name","{name}");
+        """
+        
+    else:
+        str = f"""        
+        addplane;
+        set("x", 0);
+        set("y", 0);
+        set("z", {z});
+    
+        set("x span", {size_x});
+        set("y span", {size_y});
+        set("wavelength start", {wavelength[0]});
+        set("wavelength stop", {wavelength[1]});
+        set("name","{name}");
+        """
+    
+    fdtd.eval(str)
     
 def classicMonitorGroup(fdtd, size_x, size_y, z):
     """建立一个经典监视器组，包括两个频域能量监视器，
@@ -89,20 +108,25 @@ def classicMonitorGroup(fdtd, size_x, size_y, z):
         size_y (double): 字面
         z (double)): 字面
     """
-    fdtd.addpower(name="point")
-    fdtd.set("monitor type", "point")
-    fdtd.set("x", 0)
-    fdtd.set("y", 0)
-    fdtd.set("z", z)
-    
-    fdtd.addpower(name="plane")
-    fdtd.set("x", 0)
-    fdtd.set("y", 0)
-    fdtd.set("z", z)
-    fdtd.set("x span", size_x)
-    fdtd.set("y span", size_y)
-    
-    fdtd.setglobalmonitor("frequency points",5)
+    str = f"""
+        addpower;
+        set("name", "point");
+        set("monitor type", "point");
+        set("x", 0);
+        set("y", 0);
+        set("z", {z});
+        
+        addpower;
+        set("name", "plane");
+        set("x", 0);
+        set("y", 0);
+        set("z", {z});
+        set("x span", {size_x});
+        set("y span", {size_y});
+        
+        setglobalmonitor("frequency points",5);
+        """
+    fdtd.eval(str)
 
 def addMetaCircle(fdtd, material, radius, high, *,name="cylinder"):
     """建立一个圆柱结构,结构的底面在z=0处,位置在正中
@@ -114,18 +138,21 @@ def addMetaCircle(fdtd, material, radius, high, *,name="cylinder"):
         high (double): 字面
         name (str): 默认为cylinder
     """
-    fdtd.addcircle()
+    str = f"""
+        addcircle;
     
-    fdtd.set("name", name)
-    fdtd.set("x", 0)
-    fdtd.set("y", 0)
+        set("name", "{name}");
+        set("x", 0);
+        set("y", 0);
+        
+        set("radius", {radius});
     
-    fdtd.set("radius", radius)
-  
-    fdtd.set("z max", high)
-    fdtd.set("z min", 0)
-    
-    fdtd.set("material", material)
+        set("z max", {high});
+        set("z min", 0);
+        
+        set("material", "{material}");
+    """
+    fdtd.eval(str)
 
 def addMetaRect(fdtd, material, size_x, size_y, size_z, *, name="rect"):
     """建立一个标准矩形柱,位置在正中
@@ -138,15 +165,18 @@ def addMetaRect(fdtd, material, size_x, size_y, size_z, *, name="rect"):
         size_z (double): 字面
         name (str): 默认为rect
     """
-    fdtd.addrect()
-    fdtd.set("name",name)
+    str = f"""    
+    addrect;
+    set("name","{name}");
 
-    fdtd.set("x", 0)
-    fdtd.set("y", 0)
-    fdtd.set("x span", size_x)
-    fdtd.set("y span", size_y)
+    set("x", 0);
+    set("y", 0);
+    set("x span", {size_x});
+    set("y span", {size_y});
   
-    fdtd.set("z min", 0)
-    fdtd.set("z max", size_z)
+    set("z min", 0);
+    set("z max", {size_z});
     
-    fdtd.set("material", material)
+    set("material", "{material}");
+    """
+    fdtd.eval(str)
