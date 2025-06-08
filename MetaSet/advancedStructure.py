@@ -5,34 +5,77 @@ import numpy as np
 import os
 
 def fishnetset(fdtd, material, h, l, w, r, *, name="newGroup"):
-    fdtd.addstructuregroup()
-    fdtd.set("name", name)
-    
-    addMetaRect(fdtd, material, l, w, h, name="recX")
-    fdtd.select("recX")
-    fdtd.addtogroup(name)
-    addMetaRect(fdtd, material, w, l, h, name="recY")
-    fdtd.select("recY")
-    fdtd.addtogroup(name)
-    addMetaCircle(fdtd, material, r, h, name="cie")
-    fdtd.select("cie")
-    fdtd.addtogroup(name)
+    str = f"""
+    addstructuregroup;
+    set("name", "{name}");
+
+    addrect;
+    set("name", "recX");
+    set("x", 0);
+    set("y", 0);
+    set("x span", {l});
+    set("y span", {w});
+    set("z min", 0);
+    set("z max", {h});
+    set("material", "{material}");
+    select("recX");
+    addtogroup("{name}");
+
+    addrect;
+    set("name", "recY");
+    set("x", 0);
+    set("y", 0);
+    set("x span", {w});
+    set("y span", {l});
+    set("z min", 0);
+    set("z max", {h});
+    set("material", "{material}");
+    select("recY");
+    addtogroup("{name}");
+
+    addcircle;
+    set("name", "cie");
+    set("x", 0);
+    set("y", 0);
+    set("radius", {r});
+    set("z min", 0);
+    set("z max", {h});
+    set("material", "{material}");
+    select("cie");
+    addtogroup("{name}");
+    """
+    fdtd.eval(str)
     
 def cross(fdtd, material, h, l, w, *, name="newGroup"):
-    fdtd.addstructuregroup()
-    fdtd.set("name", name)
-    
-    addMetaRect(fdtd, material, l, w, h, name="recX")
-    fdtd.select("recX")
-    fdtd.addtogroup(name)
-    addMetaRect(fdtd, material, w, l, h, name="recY")
-    fdtd.select("recY")
-    fdtd.addtogroup(name)
-    
-def swichWaveLength(fdtd, wav, name):
-    fdtd.select(name)
-    fdtd.set("wavelength start", wav)
-    fdtd.set("wavelength stop", wav)
+    str = f"""
+    addstructuregroup;
+    set("name", "{name}");
+
+    addrect;
+    set("name", "recX");
+    set("x", 0);
+    set("y", 0);
+    set("x span", {l});
+    set("y span", {w});
+    set("z min", 0);
+    set("z max", {h});
+    set("material", "{material}");
+    select("recX");
+    addtogroup("{name}");
+
+    addrect;
+    set("name", "recY");
+    set("x", 0);
+    set("y", 0);
+    set("x span", {w});
+    set("y span", {l});
+    set("z min", 0);
+    set("z max", {h});
+    set("material", "{material}");
+    select("recY");
+    addtogroup("{name}");
+    """
+    fdtd.eval(str)
     
 class MetaEngine:
     def __init__(self, hide=True, name='test', parallel=False, template=False, SpectralRange=[0.532e-6, 0.800e-6]):

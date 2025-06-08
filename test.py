@@ -1,3 +1,6 @@
-from Data_quality_evaluation import main
+from MetaSet import advancedStructure as ad
+from MetaSet import structSet as ss
 
-main.Simulation_Evaluation(0)
+meta = ad.MetaEngine()
+ad.fishnetset(meta.fdtd, "SiO2 (Glass) - Palik", 5e-6, 5e-6, 6e-6, 5e-6)
+meta.fdtd.save("aaa.fsp")
