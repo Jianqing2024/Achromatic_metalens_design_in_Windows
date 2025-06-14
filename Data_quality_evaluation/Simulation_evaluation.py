@@ -116,7 +116,7 @@ def OneD_ModelAndRun(matched_ids, COM):
     conn = sqlite3.connect(uri_path, uri=True)
     cursor = conn.cursor()
     
-    meta = ad.MetaEngine(parallel=False, template=True, SpectralRange=[COM.WavMin, COM.WavMax])
+    meta = ad.MetaEngine(parallel=False, template=True, SpectralRange=[COM.Wav[0], COM.Wav[-1]])
     
     #  建立fdtd区域
     meta.fdtd.addfdtd()

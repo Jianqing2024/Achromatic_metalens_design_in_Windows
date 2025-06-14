@@ -11,8 +11,7 @@ class Command:
         
         self.TargetPhase:list[float] = []
         
-        self.r_target, self.f_target, self.WavMin, self.WavMax = Read_Parameter()
-        self.Wav = np.linspace(self.WavMin, self.WavMax, 5)
+        self.r_target, self.f_target = Read_Parameter()
 
         # 读取数据库
         base_dir = os.getcwd()
@@ -31,10 +30,9 @@ class Command:
         self.material = cursor.fetchone()[0]
         
         #  波长段校验
-        cursor.execute("SELECT wav1, wav5 FROM SpectralParameters")
-        wavmax, wavmin = cursor.fetchone()
-
-        assert wavmax==self.WavMax and wavmin==self.WavMin, "The set frequency does not match the database frequency; please re-verify."
+        cursor.execute("SELECT wav1, wav2, wav3, wav4, wav5 FROM SpectralParameters")
+        
+        self.Wav = np.array(cursor.fetchone())
         
         #  与之前的定义不同，N指的是一个半径上的数量，而非一条直径上的数量
         self.r, self.N = Exact_Value(self.r_target, self.single)
@@ -63,9 +61,7 @@ def Read_Parameter():
 
     r = np.float64(lines[0].split('=')[1])
     f = np.float64(lines[1].split('=')[1])
-    WavMin = np.float64(lines[2].split('=')[1])
-    WavMax = np.float64(lines[3].split('=')[1])
-    return r, f, WavMin, WavMax
+    return r, f
 
 def Exact_Value(ApproximateR, single):
     approx_N = round(ApproximateR / single)
