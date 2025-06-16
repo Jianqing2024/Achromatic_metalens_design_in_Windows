@@ -2,6 +2,7 @@ import scipy.io
 from MetaSet import advancedStructure as ad
 import numpy as np
 from tqdm import tqdm
+import time
 # 载入 .mat 文件
 data = scipy.io.loadmat('target_radius_1.mat')
 # 查看所有变量名
@@ -38,45 +39,40 @@ def addMetaCircle(fdtd, material, radius, high, x, y):
     """
     fdtd.eval(str)
 
-meta = ad.MetaEngine(hide=True)
+#meta.fdtd.load('danyuan_planewave_ SiN.fsp')
 
-meta.fdtd.load('danyuan_planewave_ SiN.fsp')
+#meta.Reset()
 
-meta.Reset()
+#meta.fdtd.addstructuregroup()
+#meta.fdtd.set("name", "name")
 
-meta.fdtd.addstructuregroup()
-meta.fdtd.set("name", "name")
+#meta.fdtd.save("test.fsp")
 
 x = np.linspace(-138e-6, 138e-6, 600)
 y = np.linspace(-138e-6, 138e-6, 600)
 h = 0.8e-6
 
-counter = 0
+valid_indices = np.argwhere(~np.isnan(matrix))  # 提前筛选出所有有效点
+
 batch_size = 5000
-total_count = 0
-for index in tqdm(np.ndindex(matrix.shape), total=matrix.size):
-    i, j = index
-    xx, yy = x[i], y[j]
-    r = matrix[i, j]
+batches = [valid_indices[i:i+batch_size] for i in range(0, len(valid_indices), batch_size)]
 
-    if not np.isnan(r):
-        addMetaCircle(meta.fdtd, "SiN_2", r, h, xx, yy)
-        counter += 1
-        total_count += 1
+material = "SiN_2"
 
-        if counter >= batch_size:
-            # 保存当前模型
-            save_path = "test.fsp"
-            meta.fdtd.save(save_path)
+for file_index, batch in enumerate(tqdm(batches, desc="写入批次")):
+    meta = ad.MetaEngine(hide=True)
+    meta.fdtd.load('danyuan_planewave_ SiN.fsp')
+    meta.Reset()
+    meta.fdtd.addstructuregroup()
+    meta.fdtd.set("name", "name")
 
-            # 重载初始结构文件并重置
-            meta.fdtd.load("test.fsp")
-            meta.Reset()
-            counter = 0
+    # 内层 tqdm：当前批次中结构写入
+    for i, j in tqdm(batch, desc=f"写入结构 test{file_index+1}", leave=False):
+        r = matrix[i, j]
+        xx, yy = x[i], y[j]
+        addMetaCircle(meta.fdtd, material, r, h, xx, yy)
 
-# 最后一批不足 5000 的结构也要保存
-if counter > 0:
-    save_path = "test.fsp"
+    save_path = f"test{file_index+1}.fsp"
     meta.fdtd.save(save_path)
-        
-meta.fdtd.save("test.fsp")
+    print(f"[保存成功] {save_path}")
+    time.sleep(1)
