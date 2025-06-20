@@ -142,8 +142,8 @@ def OneD_ModelAndRun(matched_ids, COM):
     meta.fdtd.addplane()
     meta.fdtd.set("x span", 2*COM.r+COM.single)
     meta.fdtd.set("y span", COM.single)
-    meta.fdtd.set("wavelength start", COM.WavMin)
-    meta.fdtd.set("wavelength stop", COM.WavMax)
+    meta.fdtd.set("wavelength start", COM.Wav[-1])
+    meta.fdtd.set("wavelength stop", COM.Wav[0])
     
     #  建立监视器
     meta.fdtd.addpower(name="Monitor")
@@ -156,14 +156,13 @@ def OneD_ModelAndRun(matched_ids, COM):
     
     meta.materialSet()
     
-    for i, id in enumerate(matched_ids):
+    for i, id in tqdm(enumerate(matched_ids), total=len(matched_ids), desc="Structs"):
         cursor.execute("SELECT class, parameterA, parameterB, parameterC FROM Parameter WHERE ID = ?", (int(id),))
         
         result = cursor.fetchone()
         
         strClass, parameterA, parameterB, parameterC = result
         x = COM.D[i]
-        print(COM.H)
         meta.structureBuild_ForDataEvaluation(strClass, [parameterA, parameterB, parameterC], COM.H, i)
         meta.fdtd.select(str(i))
         meta.fdtd.set("x", x)
