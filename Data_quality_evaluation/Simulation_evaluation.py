@@ -1,4 +1,5 @@
 import numpy as np
+from scipy.io import savemat
 import sqlite3
 import optuna
 import os
@@ -8,11 +9,11 @@ from scipy.spatial import cKDTree # type: ignore
 from .General_function import *
 from MetaSet import advancedStructure as ad
 
-def Optimizer(COM):
-    def logging_callback(study, trial):
+def Optimizer1D(COM):
+    def logging_callback1d(study, trial):
         if study.best_trial.number == trial.number:
             print(f"Trial {trial.number:03d} found a better value. Value: {trial.value:.4f}")
-    def fun(trial):
+    def fun1d(trial):
         # 设置各个shift的上下限：
         shift0 = trial.suggest_float("shift0", -np.pi, np.pi)
         shift1 = trial.suggest_float("shift1", -np.pi, np.pi)
@@ -30,7 +31,7 @@ def Optimizer(COM):
     # 用 tqdm 显示进度条
     N_TRIALS = 500
     for _ in tqdm(range(N_TRIALS), desc="Optuna ING"):
-        study.optimize(fun, n_trials=1, callbacks=[logging_callback])
+        study.optimize(fun1d, n_trials=1, callbacks=[logging_callback1d])
         
     return study.best_params, study.best_value
 
@@ -46,8 +47,12 @@ def OneD_ObjectiveFunction(shift0, shift1, shift2, shift3, shift4, COM):
     ftx = []
     shift = [shift0, shift1, shift2, shift3, shift4]
 
-    for i in range(5):
-        ftx.append(COM.TargetPhase[i]+shift[i])
+    if COM.Over:
+        for i in range(5):
+            ftx.append(COM.TargetPhase_over[i]+shift[i])
+    else:
+        for i in range(5):
+            ftx.append(COM.TargetPhase[i]+shift[i])
 
     # 拼接成查询点 (N, 5)
     query_points = np.column_stack(ftx)
@@ -79,8 +84,12 @@ def OneD_Index(parameter, COM):
 
     ftx = []
 
-    for i in range(5):
-        ftx.append(COM.TargetPhase[i]+shifts[i])
+    if COM.Over:
+        for i in range(5):
+            ftx.append(COM.TargetPhase_over[i]+shifts[i])
+    else:
+        for i in range(5):
+            ftx.append(COM.TargetPhase[i]+shifts[i])
 
     # 拼接成查询点 (N, 5)
     query_points = np.column_stack(ftx)
@@ -104,6 +113,89 @@ def OneD_Index(parameter, COM):
     matched_ids = [ids[i] for i in indices]
     return matched_ids
 
+def Map_1D_Results_To_2D(COM, matched_ids):
+    R_1D = COM.R_over  # 1D 半径点 (K,)
+    
+    # 构建二维坐标网格
+    x = np.linspace(-COM.r, COM.r, COM.N)
+    y = np.linspace(-COM.r, COM.r, COM.N)
+    X, Y = np.meshgrid(x, y)
+    R = np.sqrt(X**2 + Y**2)  # shape = (N, N)
+
+    # 扁平化二维 R，准备映射
+    flat_R = R.flatten()  # shape = (N*N,)
+    matched_ids_1D = np.array(matched_ids)  # shape = (K,)
+
+    # 使用 searchsorted 近似找到插值位置（向右插入）
+    idx_float = np.searchsorted(R_1D, flat_R, side="left")
+    idx_float = np.clip(idx_float, 1, len(R_1D) - 1)
+
+    # 比较左右哪个更近
+    left = R_1D[idx_float - 1]
+    right = R_1D[idx_float]
+    closer_to_right = np.abs(flat_R - right) < np.abs(flat_R - left)
+    indices = idx_float - 1 + closer_to_right.astype(np.int32)  # 最终最近点索引
+
+    # 映射结构 ID，恢复成二维阵列
+    ID_array_flat = matched_ids_1D[indices]
+    ID_array = ID_array_flat.reshape(R.shape)  # shape = (N, N)
+    
+    return ID_array, X, Y
+
+def save_MAT(id_matrix, X, Y):
+    def Query_angleIn_by_ID(id_matrix, angle_index):
+        """
+        查询 angleIn{angle_index}，支持大规模 ID 阵列。
+        """
+        ids_flat = id_matrix.flatten().tolist()
+        id_to_angle = {}
+
+        base_dir = os.getcwd()
+        DB_PATH = os.path.join(base_dir, "data", "Main.db")
+        uri_path = f"file:{DB_PATH}?mode=ro"
+        conn = sqlite3.connect(uri_path, uri=True)
+        cursor = conn.cursor()
+
+        # 分批查询，每批最多 999 个 ID
+        BATCH_SIZE = 999
+        for i in range(0, len(ids_flat), BATCH_SIZE):
+            batch = ids_flat[i:i+BATCH_SIZE]
+            placeholder = ','.join('?' for _ in batch)
+            query = f'''
+                SELECT id, angleIn{angle_index} FROM Parameter 
+                WHERE id IN ({placeholder})
+            '''
+            cursor.execute(query, batch)
+            rows = cursor.fetchall()
+            id_to_angle.update({row[0]: row[1] for row in rows})
+
+        conn.close()
+
+        # 构造最终结果矩阵
+        angle_matrix_flat = [id_to_angle.get(i, np.nan) for i in ids_flat]
+        angle_matrix = np.array(angle_matrix_flat).reshape(id_matrix.shape)
+
+        return angle_matrix
+
+    # 正确创建一个长度为 5 的列表来存储相位矩阵
+    phase = []
+    for i in range(5):
+        phase_i = Query_angleIn_by_ID(id_matrix, i + 1)  # angleIn1~5
+        phase.append(phase_i)
+
+    # 保存为 .mat 文件
+    savemat('dataPhase.mat', {
+        'phase0': phase[0],
+        'phase1': phase[1],
+        'phase2': phase[2],
+        'phase3': phase[3],
+        'phase4': phase[4],
+        'X': X,
+        'Y': Y
+    })
+
+
+
 def OneD_ModelAndRun(matched_ids, COM):
     COM.D = np.concatenate([-np.flip(COM.R), COM.R])
     matched_ids = np.concatenate([np.flip(matched_ids), matched_ids])
@@ -126,6 +218,9 @@ def OneD_ModelAndRun(matched_ids, COM):
     meta.fdtd.set("y span", COM.single)
     meta.fdtd.set("z max", COM.f_target+10e-6)
     meta.fdtd.set("z min", -0.5e-6)
+    meta.fdtd.set("mesh accuracy", 1)
+    meta.fdtd.set("y min bc", "periodic")
+    meta.fdtd.set("simulation time", 3e-12)
     
     #  建立基底
     meta.fdtd.addrect()
@@ -134,7 +229,7 @@ def OneD_ModelAndRun(matched_ids, COM):
     meta.fdtd.set("y", 0)
     meta.fdtd.set("material", "SiO2 (Glass) - Palik")
     meta.fdtd.set("x span", 2*COM.r+COM.single)
-    meta.fdtd.set("y span", COM.single)
+    meta.fdtd.set("y span", COM.single*2)
     meta.fdtd.set("z min", -0.5e-6)
     meta.fdtd.set("z max", 0)
     
@@ -168,3 +263,10 @@ def OneD_ModelAndRun(matched_ids, COM):
         meta.fdtd.set("x", x)
         
     meta.fdtd.save("OneD.fsp")
+    
+def get_data():
+    meta = ad.MetaEngine(hide = True)
+    meta.fdtd.load("OneD.fsp")
+    aaa = meta.fdtd.getdata("Monitor", "Ex")
+    
+    savemat('MonitorData.mat', {'dataa': aaa})
