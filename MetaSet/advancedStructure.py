@@ -78,7 +78,7 @@ def cross(fdtd, material, h, l, w, *, name="newGroup"):
     fdtd.eval(str)
     
 class MetaEngine:
-    def __init__(self, hide=True, name='test', parallel=False, template=False, SpectralRange=[0.532e-6, 0.800e-6]):
+    def __init__(self, hide=True, name='test', parallel=False, template=False, SpectralRange=[0.800e-6, 0.532e-6]):
         lumapi_path = "D:\\Program Files\\Lumerical\\v241\\api\\python\\lumapi.py"
         #lumapi_path = "D:\\software\\AnsysOptic\\Lumerical\\v231\\api\\python\\lumapi.py"
 
@@ -109,9 +109,9 @@ class MetaEngine:
                 self.fdtd.save(filename)
             
         self.template = template
-        self.waveMin = SpectralRange[0]
-        self.waveMax = SpectralRange[1]
-        print(f"Spectral range : {self.waveMin} - {self.waveMax}")
+        self.waveMax = SpectralRange[0]
+        self.waveMin = SpectralRange[1]
+        print(f"Spectral range : waveMax = {self.waveMin} | waveMin = {self.waveMax}")
         self.highEst=0.8e-6
         
     def materialSet(self):
@@ -132,11 +132,66 @@ class MetaEngine:
         print(f"BaseMaterial : {self.baseMaterial}\nStrMaterial : {self.strMaterial}")
         
     def baseBuild(self, p):
-        setMetaFdtd(self.fdtd, p, p, self.highEst, -0.5e-6)
-        classicMonitorGroup(self.fdtd, p, p, self.highEst)
-        addMetaBase(self.fdtd, self.baseMaterial, p, p, 1e-6)
-        addMetaSource(self.fdtd, p, p, -0.25e-6, [self.waveMin, self.waveMax])
+        # 一次性构建所有组件的脚本
+        script = f"""
+        # FDTD区域设置
+        addfdtd;
+        set("x", 0);
+        set("y", 0);
+        set("x span", {p});
+        set("y span", {p});
+        set("z max", {self.highEst});
+        set("z min", {-0.5e-6});
+        set("x min bc", "periodic");
+        set("x max bc", "periodic");
+        set("y min bc", "periodic");
+        set("y max bc", "periodic");
+        set("z min bc", "PML");
+        set("z max bc", "PML");
+
+        # 添加监视器
+        addpower;
+        set("name", "point");
+        set("monitor type", "point");
+        set("x", 0);
+        set("y", 0);
+        set("z", {self.highEst});
         
+        addpower;
+        set("name", "plane");
+        set("x", 0);
+        set("y", 0);
+        set("z", {self.highEst});
+        set("x span", {p});
+        set("y span", {p});
+        
+        setglobalmonitor("frequency points", 5);
+
+        # 添加基底
+        addrect;
+        set("name", "base");
+        set("x", 0);
+        set("y", 0);
+        set("x span", {p * 2});
+        set("y span", {p * 2});
+        set("z max", 0);
+        set("z min", {-1e-6});
+        set("material", "{self.baseMaterial}");
+
+        # 添加光源
+        addplane;
+        set("x", 0);
+        set("y", 0);
+        set("z", {-0.25e-6});
+        set("x span", {p});
+        set("y span", {p});
+        set("wavelength start", {self.waveMin});
+        set("wavelength stop", {self.waveMax});
+        set("name", "source");
+        """
+
+        self.fdtd.eval(script)
+
     def structureBuild(self, strClass, parameter, h):
         if h > self.highEst:
             raise ValueError("Structure height exceeds the maximum height of the built-in FDTD region")

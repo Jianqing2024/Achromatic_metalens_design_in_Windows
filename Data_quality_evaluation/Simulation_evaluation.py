@@ -194,8 +194,6 @@ def save_MAT(id_matrix, X, Y):
         'Y': Y
     })
 
-
-
 def OneD_ModelAndRun(matched_ids, COM):
     COM.D = np.concatenate([-np.flip(COM.R), COM.R])
     matched_ids = np.concatenate([np.flip(matched_ids), matched_ids])
