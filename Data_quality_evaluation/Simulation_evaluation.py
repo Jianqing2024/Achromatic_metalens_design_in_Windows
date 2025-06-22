@@ -8,6 +8,7 @@ from tqdm import tqdm
 from scipy.spatial import cKDTree # type: ignore
 from .General_function import *
 from MetaSet import advancedStructure as ad
+import matlab.engine
 
 def Optimizer1D(COM):
     def logging_callback1d(study, trial):
@@ -261,10 +262,20 @@ def OneD_ModelAndRun(matched_ids, COM):
         meta.fdtd.set("x", x)
         
     meta.fdtd.save("OneD.fsp")
+    meta.fdtd.load("OneD.fsp")
+    meta.fdtd.run()
     
 def get_data():
     meta = ad.MetaEngine(hide = True)
     meta.fdtd.load("OneD.fsp")
     aaa = meta.fdtd.getdata("Monitor", "Ex")
     
-    savemat('MonitorData.mat', {'dataa': aaa})
+    savemat('MonitorData.mat', {'data': aaa})
+    
+    current_dir = os.getcwd()
+    
+    eng = matlab.engine.start_matlab()
+    
+    eng.cd(current_dir, nargout=0)      # type: ignore  
+    eng.Far_FieldSimulation(nargout=0)  # type: ignore
+    eng.Full_WaveSimulation(nargout=0)  # type: ignore

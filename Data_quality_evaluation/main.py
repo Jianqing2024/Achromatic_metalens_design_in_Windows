@@ -3,7 +3,7 @@ from .Simulation_evaluation import *
 from .Numerical_evaluation import *
 
 def Preliminary_numerical_evaluation(N):
-    
+    # N为填空算法的网格密度
     PhaseCoverage = Numerical_Evaluation(N)
     bestIdx = np.argmax(PhaseCoverage)
     print(bestIdx)
@@ -32,7 +32,11 @@ def Simulation_Evaluation_over(baseValue):
     print(ID_array)
     save_MAT(ID_array, X, Y)
     
+def Comprehensive_Evaluation():
+    best = Preliminary_numerical_evaluation(24)
     
+    Simulation_Evaluation(best)
     
-def GET():
+    Simulation_Evaluation_over(best)
+    
     get_data()
