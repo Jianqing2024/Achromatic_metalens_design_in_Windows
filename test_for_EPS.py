@@ -3,7 +3,7 @@ from data import dataBaseCreat as data
 ## 是否开启并行
 ## 是否初始化
 parallel=True
-initial=True
+initial=False
 template=True
 
 #  修改材料和波段后请在计算部分手动检验，此处仅作提示
