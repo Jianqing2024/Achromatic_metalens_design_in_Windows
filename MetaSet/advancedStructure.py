@@ -110,7 +110,7 @@ class MetaEngine:
         self.template = template
         self.waveMax = SpectralRange[0]
         self.waveMin = SpectralRange[1]
-        print(f"Spectral range : waveMax = {self.waveMin} | waveMin = {self.waveMax}")
+        print(f"Spectral range : waveMax = {self.waveMax} | waveMin = {self.waveMin}")
         self.highEst=0.8e-6
         
     def materialSet(self):
