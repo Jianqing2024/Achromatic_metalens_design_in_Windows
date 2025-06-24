@@ -16,3 +16,4 @@ dependencies:
 # First, install the matlab.engine package at the default location following the instructions from MathWorks;
 # after installation, navigate to: matlabroot\extern\engines\python\build\lib
 # Then copy the matlab folder into the Lib directory of your target environment.
+# Pay attention to the version issue.Please try to use genuine versions.

@@ -1,7 +1,7 @@
 from Data_quality_evaluation import main
 
 baseValue = int(main.Preliminary_numerical_evaluation(24))
-
+print(baseValue)
 main.Simulation_Evaluation(baseValue)
 
 print(11111)

@@ -33,7 +33,7 @@ def Simulation_Evaluation_over(baseValue):
     save_MAT(ID_array, X, Y)
     
 def Comprehensive_Evaluation():
-    best = Preliminary_numerical_evaluation(24)
+    best = Preliminary_numerical_evaluation(48)
     
     Simulation_Evaluation(best)
     
