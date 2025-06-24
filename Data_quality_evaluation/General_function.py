@@ -7,7 +7,7 @@ class Command:
     def __init__(self, mainValue):
         # 初始化
         self.D = np.array([])
-        self.mainValue = mainValue
+        self.mainValue = int(mainValue)
         
         self.TargetPhase:list[float] = []
         self.TargetPhase_over:list[float] = []

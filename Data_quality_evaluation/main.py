@@ -35,8 +35,8 @@ def Simulation_Evaluation_over(baseValue):
 def Comprehensive_Evaluation():
     best = Preliminary_numerical_evaluation(48)
     
-    Simulation_Evaluation(best)
-    
     Simulation_Evaluation_over(best)
+    
+    Simulation_Evaluation(best)
     
     get_data()
