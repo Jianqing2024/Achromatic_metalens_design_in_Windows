@@ -40,3 +40,12 @@ def Comprehensive_Evaluation():
     Simulation_Evaluation(best)
     
     get_data()
+
+    get_data_over()
+
+def Comprehensive_Evaluation_simple():
+    best = Preliminary_numerical_evaluation(48)
+    
+    Simulation_Evaluation_over(best)
+    
+    get_data_over()

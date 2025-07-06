@@ -278,4 +278,11 @@ def get_data():
     
     eng.cd(current_dir, nargout=0)      # type: ignore  
     eng.Far_FieldSimulation(nargout=0)  # type: ignore
+
+def get_data_over():
+    current_dir = os.getcwd()
+    
+    eng = matlab.engine.start_matlab()
+    
+    eng.cd(current_dir, nargout=0)      # type: ignore  
     eng.Full_WaveSimulation(nargout=0)  # type: ignore
