@@ -1,28 +1,18 @@
-# 忽略 Python 缓存和虚拟环境
 __pycache__/
 *.py[cod]
 *.pyo
 *.pyd
 *.so
-
-# 忽略虚拟环境
 env/
 venv/
-
-# 忽略 Jupyter 的检查点
 .ipynb_checkpoints/
-
-# 忽略除 data 文件夹外的所有 .fsp 文件
 *.fsp
 !data/*.fsp
-
-# 忽略日志、数据、脚本缓存等
 *.log
 *.mat
 *.lsf
 *.db
 *.asv
-
-# 忽略 numpy 临时文件
+*.fig
 *.npy
 *.npz

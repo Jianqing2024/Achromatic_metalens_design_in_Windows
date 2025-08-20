@@ -3,7 +3,7 @@ load dataPhase.mat X Y phase0 phase1 phase2 phase3 phase4
 [~, f] = Read_Parameter();
 
 lambda = linspace(0.8e-6, 0.5e-6, 5);
-z = linspace(1e-6, f+10e-6, 300);
+z = linspace(1e-6, f+1e-3, 300);
 
 ZZ{1} = RSaxis_GPU(exp(1i*phase0),lambda(1), X, Y, z);
 [~, i(1)] = max(ZZ{1});
@@ -18,6 +18,9 @@ ZZ{5} = RSaxis_GPU(exp(1i*phase4),lambda(5), X, Y, z);
 
 Effi = zeros(5,1);
 fwhm = zeros(5,1);
+
+[sX,sY]=size(phase0);
+
 for j=1:5
 
     if j == 1
@@ -33,7 +36,7 @@ for j=1:5
     end
 
 [Effi(j),fwhm(j)]=...
-    Focus_on_efficiency_lowSampling_GPU(exp(1i*phase),X,Y,ones(100,100),lambda(1),z(i(j)),100,10e-6,0.01e-6);
+    Focus_on_efficiency_lowSampling_GPU(exp(1i*phase),X,Y,ones(sX,sY),lambda(1),z(i(j)),100,10e-6,0.5e-6);
 end
 
 fig1 = figure(1);
@@ -64,7 +67,7 @@ title(txt)
 
 savefig(fig1,"figFarField.fig")
 
-
+save result.mat Effi fwhm
 
 function [r, f] = Read_Parameter()
     % 获取当前工作目录

@@ -12,8 +12,8 @@ def Initial_structure_directory():
     DIC = {}
 
     # 主参数设置
-    DIC['P'] = np.array([0.4e-6]) if single_P else np.linspace(0.5e-6, 0.8e-6, 3)
-    DIC['H'] = np.array([0.7e-6])  if single_H else np.linspace(0.625e-6, 0.675e-6, 3)
+    DIC['P'] = np.array([0.4e-6]) if single_P else np.linspace(0.3e-6, 0.5e-6, 4)
+    DIC['H'] = np.array([0.7e-6])  if single_H else np.linspace(0.6e-6, 0.8e-6, 4)
 
     # 类别1
     if use_class_1:

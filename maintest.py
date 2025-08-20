@@ -10,7 +10,7 @@ template=True
 #  修改材料和波段后请在计算部分手动检验，此处仅作提示
 material = 'TiO2_2023'
 #  此处确定定义，第一个值是最大波长，第二个值是最小波长
-SpectralRange = [0.8e-6,0.5e-6]
+SpectralRange = [0.8e-6,0.532e-6]
 
 if initial:
     data.DatabaseCreat(SpectralRange, material)
@@ -24,4 +24,4 @@ else:
 
 print("Sweep Over")
 
-md.Comprehensive_Evaluation()
+md.Comprehensive_Evaluation_simple()
