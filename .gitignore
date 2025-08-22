@@ -16,3 +16,4 @@ venv/
 *.fig
 *.npy
 *.npz
+*.png
