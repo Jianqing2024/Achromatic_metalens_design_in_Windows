@@ -10,7 +10,6 @@ class Command:
         self.mainValue = int(mainValue)
         
         self.TargetPhase:list[float] = []
-        self.TargetPhase_over:list[float] = []
         
         self.r_target, self.f_target = Read_Parameter()
 
@@ -46,11 +45,16 @@ class Command:
         conn.close()
 
         self.R_over = np.linspace(0.5*self.single, 1.5 * self.r, 4 * self.N)
-        
-        for i in range(5):
-            self.TargetPhase_over.append(Target_Phase_Standrad_1D(self.R_over, self.Wav[i], self.f_target))
 
         self.Over = False
+
+    def Shift(self, shift0, shift1, shift2, shift3, shift4, f_shift):
+        shift = [shift0, shift1, shift2, shift3, shift4]
+
+        self.f = self.f_target+f_shift
+        self.TargetPhase_over:list[float] = []
+        for i in range(5):
+            self.TargetPhase_over.append(Target_Phase_Standrad_1D(self.R_over, self.Wav[i], self.f)+shift[i])
 
 #######################################################################################################################################################
 

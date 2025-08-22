@@ -21,7 +21,8 @@ def Optimizer1D(COM):
         shift2 = trial.suggest_float("shift2", -np.pi, np.pi)
         shift3 = trial.suggest_float("shift3", -np.pi, np.pi)
         shift4 = trial.suggest_float("shift4", -np.pi, np.pi)
-        score = OneD_ObjectiveFunction(shift0, shift1, shift2, shift3, shift4, COM)
+        f_shift = trial.suggest_float("f_shift", -0.2e-3, 0.2e-3)
+        score = OneD_ObjectiveFunction(shift0, shift1, shift2, shift3, shift4, f_shift, COM)
         return score
     
     optuna.logging.set_verbosity(optuna.logging.WARNING)
@@ -36,7 +37,8 @@ def Optimizer1D(COM):
         
     return study.best_params, study.best_value
 
-def OneD_ObjectiveFunction(shift0, shift1, shift2, shift3, shift4, COM):
+def OneD_ObjectiveFunction(shift0, shift1, shift2, shift3, shift4, f_shift, COM):
+    COM.Target_Phi(f_shift)
     base_dir = os.getcwd()
     DB_PATH = os.path.join(base_dir, "data", "Main.db")
 
@@ -73,7 +75,7 @@ def OneD_ObjectiveFunction(shift0, shift1, shift2, shift3, shift4, COM):
     return diff
 
 def OneD_Index(parameter, COM):
-    shifts = [parameter[f'shift{i}'] for i in range(5)]
+    shifts = [parameter[f'shift{i}'] for i in range(6)]
     
     base_dir = os.getcwd()
     DB_PATH = os.path.join(base_dir, "data", "Main.db")
@@ -91,7 +93,8 @@ def OneD_Index(parameter, COM):
     else:
         for i in range(5):
             ftx.append(COM.TargetPhase[i]+shifts[i])
-
+    COM.Target_Phi(shifts[5])
+    
     # 拼接成查询点 (N, 5)
     query_points = np.column_stack(ftx)
 
