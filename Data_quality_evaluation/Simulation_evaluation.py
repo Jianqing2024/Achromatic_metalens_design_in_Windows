@@ -21,7 +21,7 @@ def Optimizer1D(COM):
         shift2 = trial.suggest_float("shift2", -np.pi, np.pi)
         shift3 = trial.suggest_float("shift3", -np.pi, np.pi)
         shift4 = trial.suggest_float("shift4", -np.pi, np.pi)
-        f_shift = trial.suggest_float("f_shift", -0.2e-3, 0.2e-3)
+        f_shift = trial.suggest_float("f_shift", -0.05e-3, 0.05e-3)
         score = OneD_ObjectiveFunction(shift0, shift1, shift2, shift3, shift4, f_shift, COM)
         return score
     
@@ -31,91 +31,71 @@ def Optimizer1D(COM):
     study = optuna.create_study(direction="minimize")
 
     # 用 tqdm 显示进度条
-    N_TRIALS = 500
+    N_TRIALS = 1000
     for _ in tqdm(range(N_TRIALS), desc="Optuna ING"):
-        study.optimize(fun1d, n_trials=1, callbacks=[logging_callback1d])
+        study.optimize(fun1d, n_trials=1)
         
     return study.best_params, study.best_value
 
-def OneD_ObjectiveFunction(shift0, shift1, shift2, shift3, shift4, f_shift, COM):
-    COM.Target_Phi(f_shift)
+def KDSerch(shift0, shift1, shift2, shift3, shift4, f_shift, COM, OP=True):
+    """
+    KD 树搜索辅助函数
+    OP=True  : Optimization 模式，仅返回 KD 树和查询点
+    OP=False : Index 模式，同时返回结构 ID
+    """
+    # 更新 COM 的目标相位
+    COM.Shift(shift0, shift1, shift2, shift3, shift4, f_shift)
+
     base_dir = os.getcwd()
     DB_PATH = os.path.join(base_dir, "data", "Main.db")
-
     uri_path = f"file:{DB_PATH}?mode=ro"
 
     conn = sqlite3.connect(uri_path, uri=True)
     cursor = conn.cursor()
 
-    ftx = []
-    shift = [shift0, shift1, shift2, shift3, shift4]
-
-    if COM.Over:
-        for i in range(5):
-            ftx.append(COM.TargetPhase_over[i]+shift[i])
-    else:
-        for i in range(5):
-            ftx.append(COM.TargetPhase[i]+shift[i])
-
     # 拼接成查询点 (N, 5)
-    query_points = np.column_stack(ftx)
+    query_points = np.column_stack(COM.TargetPhase_over)
 
-    cursor.execute('SELECT angleIn1, angleIn2, angleIn3, angleIn4, angleIn5 FROM Parameter WHERE baseValue=(?)', (COM.mainValue,))
-    rows = cursor.fetchall()
+    if OP:  # 优化模式，不需要 ID
+        cursor.execute(
+            'SELECT angleIn1, angleIn2, angleIn3, angleIn4, angleIn5 '
+            'FROM Parameter WHERE baseValue=(?)',
+            (COM.mainValue,)
+        )
+        rows = cursor.fetchall()
+        ids = None
+        points = np.array(rows)
+    else:   # 查询模式，需要 ID
+        cursor.execute(
+            'SELECT id, angleIn1, angleIn2, angleIn3, angleIn4, angleIn5 '
+            'FROM Parameter WHERE baseValue=(?)',
+            (COM.mainValue,)
+        )
+        rows = cursor.fetchall()
+        ids = [row[0] for row in rows]
+        points = np.array([row[1:] for row in rows])
 
-    points = np.array([row[0:] for row in rows])     # 相位点组成的数组，形状为 (M, 5)
-
-    # 构建 KD 树
     tree = cKDTree(points, leafsize=40)
     conn.close()
-    
-    distances, indices = tree.query(query_points, k=1)
-    
-    diff=np.sum(distances)
-    return diff
+    return tree, query_points, ids
+
+def OneD_ObjectiveFunction(shift0, shift1, shift2, shift3, shift4, f_shift, COM):
+    tree, query_points, _ = KDSerch(shift0, shift1, shift2, shift3, shift4, f_shift, COM, OP=True)
+    distances, _ = tree.query(query_points, k=1)
+    return np.sum(distances)  # 目标函数：总误差
 
 def OneD_Index(parameter, COM):
-    shifts = [parameter[f'shift{i}'] for i in range(6)]
-    
-    base_dir = os.getcwd()
-    DB_PATH = os.path.join(base_dir, "data", "Main.db")
+    shifts = [parameter[f'shift{i}'] for i in range(5)]
+    shifts.append(parameter["f_shift"])
 
-    uri_path = f"file:{DB_PATH}?mode=ro"
+    tree, query_points, ids = KDSerch(shifts[0], shifts[1], shifts[2], shifts[3], shifts[4], shifts[5], COM, False)
 
-    conn = sqlite3.connect(uri_path, uri=True)
-    cursor = conn.cursor()
+    # 最近邻查询
+    _, indices = tree.query(query_points, k=1)
 
-    ftx = []
-
-    if COM.Over:
-        for i in range(5):
-            ftx.append(COM.TargetPhase_over[i]+shifts[i])
-    else:
-        for i in range(5):
-            ftx.append(COM.TargetPhase[i]+shifts[i])
-    COM.Target_Phi(shifts[5])
-    
-    # 拼接成查询点 (N, 5)
-    query_points = np.column_stack(ftx)
-
-    # 查询时连带结构 ID 一起取出
-    cursor.execute('SELECT id, angleIn1, angleIn2, angleIn3, angleIn4, angleIn5 FROM Parameter WHERE baseValue=(?)', (COM.mainValue,))
-    rows = cursor.fetchall()
-
-    # 拆分结构 ID 和相位数据
-    ids = [row[0] for row in rows]                   # 结构 ID 列表，长度为 M
-    points = np.array([row[1:] for row in rows])     # 相位点组成的数组，形状为 (M, 5)
-
-    # 构建 KD 树
-    tree = cKDTree(points, leafsize=40)
-    conn.close()
-
-    # 最近邻查询 (N 个查询点，每个返回 1 个最近邻)
-    distances, indices = tree.query(query_points, k=1)
-
-    # 用索引反查数据库结构 ID（返回 N 个结构点的 ID）
-    matched_ids = [ids[i] for i in indices]
-    return matched_ids
+    # 用索引反查数据库结构 ID
+    matched_ids = np.array(ids)[indices]
+    return matched_ids.tolist()
 
 def Map_1D_Results_To_2D(COM, matched_ids):
     R_1D = COM.R_over  # 1D 半径点 (K,)
@@ -181,7 +161,6 @@ def save_MAT(id_matrix, X, Y):
 
         return angle_matrix
 
-    # 正确创建一个长度为 5 的列表来存储相位矩阵
     phase = []
     for i in range(5):
         phase_i = Query_angleIn_by_ID(id_matrix, i + 1)  # angleIn1~5

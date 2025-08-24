@@ -38,13 +38,10 @@ class Command:
         self.r, self.N = Exact_Value(self.r_target, self.single)
         
         self.R = np.linspace(0.5*self.single, self.r, self.N)
-
-        for i in range(5):
-            self.TargetPhase.append(Target_Phase_Standrad_1D(self.R, self.Wav[i], self.f_target))
             
         conn.close()
 
-        self.R_over = np.linspace(0.5*self.single, 1.5 * self.r, 4 * self.N)
+        self.R_over = np.linspace(0.5*self.single, 1.5 * self.r, 8 * self.N)
 
         self.Over = False
 

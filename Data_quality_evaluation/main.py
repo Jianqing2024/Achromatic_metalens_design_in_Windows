@@ -27,6 +27,7 @@ def Simulation_Evaluation_over(baseValue):
     COM.Over = True
     BestParameter, BestValue = Optimizer1D(COM)
     print(f"BestValue : {BestValue}")
+    print(BestParameter)
     matched_ids = OneD_Index(BestParameter, COM)
     ID_array, X, Y = Map_1D_Results_To_2D(COM, matched_ids)
     print(ID_array)
