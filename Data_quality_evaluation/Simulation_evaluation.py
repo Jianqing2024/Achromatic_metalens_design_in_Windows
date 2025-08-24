@@ -167,7 +167,9 @@ def save_MAT(id_matrix, X, Y):
         phase.append(phase_i)
 
     # 保存为 .mat 文件
-    savemat('dataPhase.mat', {
+    current_dir = os.getcwd()
+    save_path = os.path.join(current_dir, "Data_quality_evaluation", "dataPhase.mat")
+    savemat(save_path, {
         'phase0': phase[0],
         'phase1': phase[1],
         'phase2': phase[2],
@@ -251,8 +253,10 @@ def get_data():
     meta = ad.MetaEngine(hide = True)
     meta.fdtd.load("OneD.fsp")
     aaa = meta.fdtd.getdata("Monitor", "Ex")
-    
-    savemat('MonitorData.mat', {'data': aaa})
+
+    current_dir = os.getcwd()
+    save_path = os.path.join(current_dir, "Data_quality_evaluation", 'MonitorData.mat')
+    savemat(save_path, {'data': aaa})
     
     current_dir = os.getcwd()
     
@@ -261,10 +265,12 @@ def get_data():
     eng.cd(current_dir, nargout=0)      # type: ignore  
     eng.Far_FieldSimulation(nargout=0)  # type: ignore
 
-def get_data_over():
+def Focal_Point_Calculation():
     current_dir = os.getcwd()
+    target_dir = os.path.join(current_dir, "Data_quality_evaluation")
     
     eng = matlab.engine.start_matlab()
     
-    eng.cd(current_dir, nargout=0)      # type: ignore  
-    eng.Full_WaveSimulation(nargout=0)  # type: ignore
+    eng.cd(target_dir, nargout=0)      # type: ignore  
+    f_percent = eng.Full_WaveSimulation(nargout=1)  # type: ignore
+    return f_percent

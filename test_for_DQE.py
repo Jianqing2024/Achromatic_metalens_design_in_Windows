@@ -1,3 +1,3 @@
 from Data_quality_evaluation import main
 
-main.Comprehensive_Evaluation_simple()
+f_percent, COM = main.Comprehensive_Evaluation_simple()

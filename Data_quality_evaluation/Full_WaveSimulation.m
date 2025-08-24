@@ -1,4 +1,4 @@
-function Full_WaveSimulation()
+function F_percent = Full_WaveSimulation()
 load dataPhase.mat X Y phase0 phase1 phase2 phase3 phase4
 [~, f] = Read_Parameter();
 
@@ -15,6 +15,15 @@ ZZ{4} = RSaxis_GPU(exp(1i*phase3),lambda(4), X, Y, z);
 [~, i(4)] = max(ZZ{4});
 ZZ{5} = RSaxis_GPU(exp(1i*phase4),lambda(5), X, Y, z);
 [~, i(5)] = max(ZZ{5});
+
+F = z(i);
+
+max_val = max(F);
+min_val = min(F);
+
+diff_val = max_val - min_val;
+
+F_percent = (diff_val / min_val) * 100;
 
 Effi = zeros(5,1);
 fwhm = zeros(5,1);
@@ -70,10 +79,13 @@ savefig(fig1,"figFarField.fig")
 save result.mat Effi fwhm
 
 function [r, f] = Read_Parameter()
-    % 获取当前工作目录
-    base_dir = pwd;
-    % 拼接完整文件路径
-    filename = fullfile(base_dir, 'data', 'parameter.txt');
+    current_dir = pwd;
+    
+    % 回退一级到项目根目录
+    project_root = fullfile(current_dir, '..');
+    
+    % 拼接 data 文件夹里的 parameter.txt
+    filename = fullfile(project_root, 'data', 'parameter.txt');
     
     % 打开文件
     fid = fopen(filename, 'r');
