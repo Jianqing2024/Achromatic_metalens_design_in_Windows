@@ -5,15 +5,15 @@ load dataPhase.mat X Y phase0 phase1 phase2 phase3 phase4
 lambda = linspace(0.8e-6, 0.5e-6, 5);
 z = linspace(1e-6, f+1e-3, 300);
 
-ZZ{1} = RSaxis_GPU(exp(1i*phase0),lambda(1), X, Y, z);
+ZZ{1} = RSaxis_GPU(exp(1i*phase0),lambda(1), X, Y, z, 1);
 [~, i(1)] = max(ZZ{1});
-ZZ{2} = RSaxis_GPU(exp(1i*phase1),lambda(2), X, Y, z);
+ZZ{2} = RSaxis_GPU(exp(1i*phase1),lambda(2), X, Y, z, 1);
 [~, i(2)] = max(ZZ{2});
-ZZ{3} = RSaxis_GPU(exp(1i*phase2),lambda(3), X, Y, z);
+ZZ{3} = RSaxis_GPU(exp(1i*phase2),lambda(3), X, Y, z, 1);
 [~, i(3)] = max(ZZ{3});
-ZZ{4} = RSaxis_GPU(exp(1i*phase3),lambda(4), X, Y, z);
+ZZ{4} = RSaxis_GPU(exp(1i*phase3),lambda(4), X, Y, z, 1);
 [~, i(4)] = max(ZZ{4});
-ZZ{5} = RSaxis_GPU(exp(1i*phase4),lambda(5), X, Y, z);
+ZZ{5} = RSaxis_GPU(exp(1i*phase4),lambda(5), X, Y, z, 1);
 [~, i(5)] = max(ZZ{5});
 
 F = z(i);
@@ -45,7 +45,7 @@ for j=1:5
     end
 
 [Effi(j),fwhm(j)]=...
-    Focus_on_efficiency_lowSampling_GPU(exp(1i*phase),X,Y,ones(sX,sY),lambda(j),z(i(j)),200,7.5e-6,0.25e-6);
+    Focus_on_efficiency_lowSampling_GPU(exp(1i*phase),X,Y,ones(sX,sY),lambda(j),z(i(j)),200,7.5e-6,0.25e-6,1,1);
 end
 
 fig1 = figure(1);

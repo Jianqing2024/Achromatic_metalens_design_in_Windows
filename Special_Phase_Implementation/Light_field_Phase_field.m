@@ -1,6 +1,6 @@
 function Emiddle=Light_field_Phase_field(Ft,ft,r,l,single,lambda,U)
 k1=2*pi/lambda*1.444;
-k2=2*pi/lambda;
+k2=2*pi/lambda*1.333;
 
 x = linspace(-(r-0.5*single),(r-0.5*single),U);
 y = linspace(-(r-0.5*single),(r-0.5*single),U);

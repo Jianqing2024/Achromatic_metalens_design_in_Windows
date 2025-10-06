@@ -11,7 +11,7 @@ function pop = Generate_Initial_Population(x0, u, popSize, lb, ub)
     for i = 1:popSize
         % 添加随机扰动
         delta = u .* (2*rand(1, numVars) - 1);  % [-u, +u] 区间
-        pop(i, :) = x0 + delta;
+        pop(i, :) = sort(x0 + delta);
     end
 
     % 确保在上下界之间

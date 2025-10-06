@@ -1,18 +1,17 @@
 function parameter=parameter_preset
 %% 阵列参数
-S = load('ParameterData.mat');
-r = S.r;
-single = S.single;
+para = load('data.mat');
+r = para.r;
+single = para.single;
 
-parameter.r=r+0.5*single;
+parameter.r=r;
 parameter.single=single;
-parameter.lambda=linspace(0.8e-6, 0.5e-6, 5);
-parameter.l=2.44e-3;
+parameter.lambda=[0.8e-6, 0.532e-6];
 
-parameter.Fnum=400;
-parameter.loop=7;
+parameter.Fnum=100;
 
-parameter.start=1.85e-3;
-parameter.stop=2.65e-3;
+parameter.start=1.8e-3;
+parameter.stop=2.8e-3;
 
+parameter.U = int16(parameter.r/parameter.single*2);
 end

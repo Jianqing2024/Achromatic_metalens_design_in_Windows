@@ -1,6 +1,6 @@
 function Eout = Light_field_regular(r,l,single,lambda,U,f)
 k1=2*pi/lambda*1.444;
-k2=2*pi/lambda;
+k2=2*pi/lambda*1.333;
 
 x = linspace(-(r-0.5*single),(r-0.5*single),U);
 y = linspace(-(r-0.5*single),(r-0.5*single),U);

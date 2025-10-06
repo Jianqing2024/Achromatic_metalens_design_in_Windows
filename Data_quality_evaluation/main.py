@@ -6,7 +6,6 @@ def Preliminary_numerical_evaluation(N):
     # N为填空算法的网格密度
     PhaseCoverage = Numerical_Evaluation(N)
     bestIdx = np.argmax(PhaseCoverage)
-    print(bestIdx)
     return bestIdx
         
 def Simulation_Evaluation(baseValue):
