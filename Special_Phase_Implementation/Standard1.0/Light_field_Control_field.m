@@ -1,6 +1,6 @@
-function Eout = Light_field_Single(r,l,single,lambda,U,f)
+function Eout = Light_field_Control_field(r,l,single,lambda,U,f)
 k1=2*pi/lambda*1.444;
-k2=2*pi/lambda*1.333;
+k2=2*pi/lambda;
 
 x = linspace(-(r-0.5*single),(r-0.5*single),U);
 y = linspace(-(r-0.5*single),(r-0.5*single),U);
