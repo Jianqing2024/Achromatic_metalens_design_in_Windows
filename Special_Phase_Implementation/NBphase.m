@@ -1,5 +1,5 @@
 function [Eout, phi] = NBphase(r,single,lambda,l,U,Fnum,start,stop,Ft)
-popnum = 25;
+popnum = 50;
 para.r = r;
 para.single = single;
 para.lambda = lambda;
@@ -20,7 +20,7 @@ initPop = ...
 options = optimoptions('ga', ...
     'Display', 'iter', ...
     'PopulationSize', popnum, ...
-    'MaxGenerations', 1000, ...
+    'MaxGenerations', 100, ...
     'InitialPopulationMatrix', initPop, ... 
     'CrossoverFraction', 0.8, ...
     'OutputFcn', @gaStopAtFitness);
@@ -32,12 +32,13 @@ ub = (stop+0.1e-3) * ones(1, Fnum);
 
 Eout = Light_field_Emission_field(Ft, bestList, r, l, single, lambda, U);
 phi = Light_field_Phase_field(Ft, bestList, r, l, single, lambda, U);
+phi = wrapToPi(phi);
 
 x = linspace(-(r-0.5*single),(r-0.5*single),U);
 y = linspace(-(r-0.5*single),(r-0.5*single),U);
 [X,Y]=meshgrid(x,y);
 
-z = linspace(start-3e-3, stop+3e-3, 100);
+z = linspace(10e-6, 100e-6, 100);
 
 E = RSaxis_GPU(Eout, lambda, X, Y, z, 1);
 
@@ -51,6 +52,8 @@ save(txt2, "phi", "Eout", "bestList")
 
 txt3 = sprintf("Wav%3.0d.fig", lambda*1e9);
 savefig(f1, txt3)
+
+close all
 
 function [state, options, optchanged] = gaStopAtFitness(options, state, flag)
     optchanged = false;

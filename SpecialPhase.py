@@ -2,9 +2,10 @@ import matlab.engine
 from scipy.io import savemat
 from Data_quality_evaluation import main
 import os
-from Data_quality_evaluation import General_function as Gf
+from MetaSet import advancedStructure as ad
 import numpy as np
 import sqlite3
+from tqdm import tqdm
 
 def Random_Matrix_Generation(U, Fnum):
     xb = int(U / np.sqrt(Fnum))
@@ -23,10 +24,6 @@ def Random_Matrix_Generation(U, Fnum):
         PB.append(row)
 
     Ft = np.block(PB)+1
-
-    savemat("D:\\WORK\\Achromatic_metalens_design_in_Windows\\Special_Phase_Implementation\\ft.mat", {
-    'Ft': Ft
-    })
 
     return Ft
 
@@ -60,14 +57,18 @@ cursor = conn.cursor()
 cursor.execute('SELECT parameterA, parameterB FROM BaseParameter WHERE baseValue=(?)', (best,))
 row = cursor.fetchone()
 
-r = 0.8e-3
+r = 12e-6
 single = row[0]        
 H = row[1]
-Fnum = 400
-start = 23e-3
-stop = 25e-3
+Fnum = 4
+start = 30e-6
+stop = 50e-6
 U = int(r*2/single)
-l = 20e-3
+l = 2000e-3
+
+x = np.linspace(-(r - 0.5*single), (r - 0.5*single), U)
+y = np.linspace(-(r - 0.5*single), (r - 0.5*single), U)
+X, Y = np.meshgrid(x, y)
 
 Ft = Random_Matrix_Generation(U, Fnum)
 print(Ft.shape)
@@ -81,9 +82,104 @@ eng.cd(path, nargout=0)
 
 target_wav = [0.780e-6,0.532e-6]
 
-phase = [None, None]
-Eout = [None,None]
+phase = [np.zeros((U,U)), np.zeros((U,U))]
+Eout = [np.zeros((U,U)),np.zeros((U,U))]
 for i, wav in enumerate(target_wav):
-    [phase[i],Eout[i]] = eng.NBphase(r,single,wav,l,U,Fnum,start,stop,Ft,nargout=2)
+    Eout_i, phase_i = eng.NBphase(r, single, wav, l, U, Fnum, start, stop, Ft, nargout=2)
 
-shift, phase[1], total_diff = minimize_difference(phase[0], phase[1])
+    phase[i] = np.array(phase_i)
+    Eout[i] = np.array(Eout_i)
+
+id = np.zeros((U, U), dtype=int)
+
+for i in range(U):
+    for j in range(U):
+        cursor.execute("""
+            SELECT ID, 
+            ((angleIn1 - ?) * (angleIn1 - ?) + (angleIn5 - ?) * (angleIn5 - ?)) AS diff
+            FROM Parameter
+            WHERE baseValue = (?)
+            ORDER BY diff ASC
+            LIMIT 1;
+                       """, (phase[0][i,j], phase[0][i,j], phase[1][i,j], phase[1][i,j], best))
+
+        row = cursor.fetchone()
+        id[i,j] = row[0]
+
+meta = ad.MetaEngine(parallel=False, template=True, SpectralRange=[target_wav[0], target_wav[1]])
+
+#  建立fdtd区域
+meta.fdtd.addfdtd()
+meta.fdtd.set("x",0)
+meta.fdtd.set("y",0)
+meta.fdtd.set("x span", 2*r+single)
+meta.fdtd.set("y span", 2*r+single)
+meta.fdtd.set("z max", 1e-6)
+meta.fdtd.set("z min", -1e-6)
+meta.fdtd.set("mesh accuracy", 1)
+meta.fdtd.set("y min bc", "periodic")
+meta.fdtd.set("simulation time", 3e-12)
+
+#  建立基底
+meta.fdtd.addrect()
+meta.fdtd.set("name","base")
+meta.fdtd.set("x", 0)
+meta.fdtd.set("y", 0)
+meta.fdtd.set("material", "SiO2 (Glass) - Palik")
+meta.fdtd.set("x span", 2*r+single)
+meta.fdtd.set("y span", 2*r+single)
+meta.fdtd.set("z min", -1e-6)
+meta.fdtd.set("z max", 0)
+
+#  建立光源。请在运行时手动调试波长
+meta.fdtd.addplane()
+meta.fdtd.set("x", 0)
+meta.fdtd.set("y", 0)
+meta.fdtd.set("z", -0.5e-6)
+meta.fdtd.set("x span", 2*r+single)
+meta.fdtd.set("y span", 2*r+single)
+meta.fdtd.set("wavelength start", target_wav[0])
+meta.fdtd.set("wavelength stop", target_wav[0])
+
+#  建立监视器
+meta.fdtd.addpower(name="Monitor plane")
+meta.fdtd.set("monitor type", "2D Z-normal")
+meta.fdtd.set("x", 0)
+meta.fdtd.set("x span", 2*r+single)
+meta.fdtd.set("y", 0)
+meta.fdtd.set("y span", 2*r+single)
+meta.fdtd.set("z", 1e-6)
+
+meta.fdtd.save("AllWav.fsp")
+
+"""meta.fdtd.addpower(name="Monitor Y")
+meta.fdtd.set("monitor type", "2D Y-normal")
+meta.fdtd.set("x", 0)
+meta.fdtd.set("x span", 2*r+single)
+meta.fdtd.set("y", 0)
+meta.fdtd.set("z min", 1e-6)
+meta.fdtd.set("z max", 100e-6)"""
+
+meta.materialSet()
+
+for i in tqdm(range(U), desc="Rows"):
+    for j in tqdm(range(U), desc="Cols", leave=False):
+        cursor.execute("SELECT class, parameterA, parameterB, parameterC FROM Parameter WHERE ID = ?", (int(id[i,j]),))
+        result = cursor.fetchone()
+        strClass, parameterA, parameterB, parameterC = result
+        x = X[i,j]
+        y = Y[i,j]
+        name = f"{i}_{j}"
+        meta.structureBuild_ForDataEvaluation(strClass, [parameterA, parameterB, parameterC], H, name)
+        meta.fdtd.select(name)
+        meta.fdtd.set("x", x)
+        meta.fdtd.set("y", y)
+
+cursor.close()
+conn.close()
+    
+meta.fdtd.save("AllWav.fsp")
+
+meta.fdtd.load("AllWav.fsp")
+meta.fdtd.run()
+meta.fdtd.save("AllWav.fsp")
