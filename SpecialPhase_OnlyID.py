@@ -88,7 +88,7 @@ l = 25e-3
 Fnum = 400
 start = 21e-3
 stop = 23e-3
-singleDownsampling = 1.2e-6
+singleDownsampling = 0.8e-6
 loop = 18
 popnum = 10
 
@@ -139,17 +139,17 @@ id_list = np.unique(ids)
 lib = gdstk.Library(unit=1e-6, precision=1e-9)
 top = lib.new_cell("TOP")
 
-x = np.linspace(-(r-0.5*single), (r-0.5*single), U)
-y = np.linspace(-(r-0.5*single), (r-0.5*single), U)
+x = np.linspace(-(r-0.5*single), (r-0.5*single), U)*1e6
+y = np.linspace(-(r-0.5*single), (r-0.5*single), U)*1e6
 X, Y = np.meshgrid(x, y)
 
-ids[np.sqrt(X**2 + Y**2)>r] = np.nan
+ids[np.sqrt(X**2 + Y**2)>(r*1e6)] = np.nan
 
 for id in tqdm(id_list):
     cell = Create_template(id, cursor, lib)
     positions = np.argwhere(ids == id)
     for po in positions:
-        x, y = po
+        x, y = X[po[0],po[1]], Y[po[0],po[1]]
         ref = gdstk.Reference(cell, origin=(x, y))
         top.add(ref)
 
