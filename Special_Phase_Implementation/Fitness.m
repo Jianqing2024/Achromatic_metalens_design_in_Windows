@@ -13,7 +13,7 @@ x = linspace(-(r-0.5*single), (r-0.5*single), U);
 y = linspace(-(r-0.5*single), (r-0.5*single), U);
 [X, Y] = meshgrid(x,y);
 
-z = linspace(start-10e-6,stop+10e-6,50);
+z = linspace(start-20e-6,stop+20e-6,50);
 %% 计算光强
 % 生成光场
 Eout = Light_field_Emission_field(Ft,ft,r,l,single,lambda,U);

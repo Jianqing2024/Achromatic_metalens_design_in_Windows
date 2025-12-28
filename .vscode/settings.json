@@ -2,5 +2,8 @@
 "terminal.integrated.fontSize": 16 ,
 "editor.fontFamily": "Maple Mono NF CN",
 "editor.fontLigatures": true,
-"python.analysis.typeCheckingMode": "off"
+"python.analysis.typeCheckingMode": "off",
+"editor.cursorStyle": "line",
+"editor.cursorBlinking": "smooth",
+"editor.cursorWidth": 2
 }
