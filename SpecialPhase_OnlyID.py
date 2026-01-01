@@ -7,6 +7,7 @@ from tqdm import tqdm
 from Data_quality_evaluation import main
 import gdstk
 from tqdm import tqdm
+from scipy.spatial import cKDTree
 
 def Create_template(id, cursor, lib):
     cursor.execute('SELECT class, parameterA, parameterB, parameterC FROM Parameter WHERE ID=(?)', (id,))
@@ -86,8 +87,8 @@ H = row[1]
 wav = [0.780e-6, 0.532e-6]
 l = 25e-3
 Fnum = 400
-start = 21e-3
-stop = 23e-3
+start = 20e-3
+stop = 22e-3
 singleDownsampling = 0.8e-6
 loop = 18
 popnum = 10
@@ -117,20 +118,31 @@ phase780 = np.zeros([U, U])
 phase532 = np.zeros([U, U])
 ids = np.zeros([U, U])
 
-for i in tqdm(range(U), desc="Rows"):
-    for j in tqdm(range(U), desc="Cols", leave=False):
-        cursor.execute("""
-            SELECT ID, angleIn1, angleIn5,
-            ((angleIn1 - ?) * (angleIn1 - ?) + (angleIn5 - ?) * (angleIn5 - ?)) AS diff
-            FROM Parameter
-            WHERE baseValue = (?)
-            ORDER BY diff ASC
-            LIMIT 1;
-                       """, (phase[0][i,j], phase[0][i,j], phase[1][i,j], phase[1][i,j], best))
+cursor.execute("""
+    SELECT ID, angleIn1, angleIn5
+    FROM Parameter
+    WHERE baseValue = ?
+""", (best,))
 
-        row = cursor.fetchone()
-        phase780[i,j], phase532[i,j] = row[1],row[2]
-        ids[i,j] = row[0]
+data = np.array(cursor.fetchall())  
+
+angles = data[:, 1:3]   # (N, 2)
+tree = cKDTree(angles)
+
+query = np.stack([
+    phase[0].ravel(),
+    phase[1].ravel()
+], axis=1)   # (U*U, 2)
+
+dist, idx = tree.query(query, k=1)
+
+nearest = data[idx]
+
+ids[:]       = nearest[:,0].reshape(U, U)
+phase780[:]  = nearest[:,1].reshape(U, U)
+phase532[:]  = nearest[:,2].reshape(U, U)
+
+savemat("D:\\WORK\\Achromatic_metalens_design_in_Windows\\figure\\End.mat", {'phase532': phase532, 'phase780': phase780})
 
 np.save("id.npy", ids)
 print("ID has been saved")

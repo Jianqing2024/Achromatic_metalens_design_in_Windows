@@ -1,2 +1,0 @@
-from Special_Phase_Implementation import main
-main.Parameter_Export()
