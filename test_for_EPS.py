@@ -8,7 +8,7 @@ initial=True
 template=True
 
 #  修改材料和波段后请在计算部分手动检验，此处仅作提示
-material = 'TiO2_2023'
+material = 'TiO2_real'
 #  第一个值是最大波长，第二个值是最小波长
 SpectralRange = [0.780e-6,0.532e-6]
 

@@ -117,7 +117,7 @@ class MetaEngine:
         if self.template:
             # self.baseMaterial = "GaN"
             self.baseMaterial = "SiO2 (Glass) - Palik"
-            self.strMaterial = "TiO2_2023"
+            self.strMaterial = 'TiO2_real'
             identification = self.fdtd.materialexists(self.baseMaterial)
             if not identification:
                 raise RuntimeError("Material not properly assigned")
@@ -125,7 +125,7 @@ class MetaEngine:
                 print("Please note that you are using materials from the TEMPLLATE file.")
         else:
             self.baseMaterial = "SiO2 (Glass) - Palik"
-            self.strMaterial = "TiO2_2023"
+            self.strMaterial = 'TiO2_real'
             print("Please note that you are using materials from the ORIGINAL material library.")
 
         print(f"BaseMaterial : {self.baseMaterial}\nStrMaterial : {self.strMaterial}")

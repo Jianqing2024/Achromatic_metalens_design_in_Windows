@@ -6,18 +6,18 @@ def Initial_structure_directory():
     use_class_2=True
     use_class_3=True
     use_class_4=True
-    single_P=True
+    single_P=False
     single_H=False
     
     DIC = {}
 
     # 主参数设置
-    DIC['P'] = np.array([0.4e-6]) if single_P else np.linspace(0.3e-6, 0.5e-6, 4)
-    DIC['H'] = np.array([0.65e-6])  if single_H else np.linspace(0.4e-6, 0.9e-6, 4)
+    DIC['P'] = np.array([0.4e-6]) if single_P else np.linspace(0.4e-6, 0.5e-6, 4)
+    DIC['H'] = np.array([0.65e-6])  if single_H else np.linspace(0.4e-6, 0.7e-6, 4)
 
     # 类别1
     if use_class_1:
-        DIC['ParameterAForClass1'] = np.linspace(0.04e-6, 0.18e-6, 40)
+        DIC['ParameterAForClass1'] = np.linspace(0.04e-6, 0.21e-6, 40)
 
     # 类别2
     if use_class_2:
