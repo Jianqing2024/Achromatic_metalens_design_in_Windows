@@ -81,22 +81,23 @@ cursor = conn.cursor()
 cursor.execute('SELECT parameterA, parameterB FROM BaseParameter WHERE baseValue=(?)', (best,))
 row = cursor.fetchone()
 
-r = 1.8e-3
+r = 0.5e-3
 single = row[0]
 H = row[1]
 wav = [0.780e-6, 0.532e-6]
-l = 25e-3
-Fnum = 400
-start = 20e-3
-stop = 22e-3
+l = 5e-3
+Fnum = 25
+start = 5e-3
+stop = 5.5e-3
 singleDownsampling = 0.8e-6
-loop = 18
+loop = 10
 popnum = 10
 
 U = int(r*2/single)
 UDownsampling = int(r/singleDownsampling*2)
 
 Ft = Random_Matrix_Generation(U, Fnum)
+
 Ft_low = Random_Matrix_Generation(UDownsampling, Fnum)
 
 current_dir = os.getcwd()
