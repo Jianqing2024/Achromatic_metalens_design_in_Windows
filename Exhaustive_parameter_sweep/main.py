@@ -12,7 +12,7 @@ def Initial_structure_directory():
     DIC = {}
 
     # 主参数设置
-    DIC['P'] = np.array([0.4e-6]) if single_P else np.linspace(0.4e-6, 0.5e-6, 4)
+    DIC['P'] = np.array([0.4e-6]) if single_P else np.linspace(0.8e-6, 1e-6, 4)
     DIC['H'] = np.array([0.65e-6])  if single_H else np.linspace(0.4e-6, 0.7e-6, 4)
 
     # 类别1

@@ -54,7 +54,7 @@ def Jobs_Preparation(meta, group, RUN_PATH):
         paramB=item["paramB"]
         paramC=item["paramC"]
         
-        parameter=parameter = [paramA, paramB, paramC]
+        parameter = [paramA, paramB, paramC]
         
         meta.baseBuild(p)
         meta.structureBuild(strClass, parameter, h)

@@ -261,16 +261,20 @@ def get_data():
     current_dir = os.getcwd()
     
     eng = matlab.engine.start_matlab()
-    
-    eng.cd(current_dir, nargout=0)      # type: ignore  
-    eng.Far_FieldSimulation(nargout=0)  # type: ignore
+    try:
+        eng.cd(current_dir, nargout=0)      # type: ignore  
+        eng.Far_FieldSimulation(nargout=0)  # type: ignore
+    finally:
+        eng.quit()
 
 def Focal_Point_Calculation():
     current_dir = os.getcwd()
     target_dir = os.path.join(current_dir, "Data_quality_evaluation")
     
     eng = matlab.engine.start_matlab()
-    
-    eng.cd(target_dir, nargout=0)      # type: ignore  
-    f_percent = eng.Full_WaveSimulation(nargout=1)  # type: ignore
+    try:
+        eng.cd(target_dir, nargout=0)      # type: ignore  
+        f_percent = eng.Full_WaveSimulation(nargout=1)  # type: ignore
+    finally:
+        eng.quit()
     return f_percent

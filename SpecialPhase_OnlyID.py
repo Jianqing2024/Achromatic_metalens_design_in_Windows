@@ -84,7 +84,7 @@ row = cursor.fetchone()
 r = 0.5e-3
 single = row[0]
 H = row[1]
-wav = [0.780e-6, 0.532e-6]
+wav = [1.550e-6, 1.310e-6]
 l = 5e-3
 Fnum = 25
 start = 5e-3
@@ -105,15 +105,18 @@ path = os.path.join(current_dir, "Special_Phase_Implementation")
 save_path = os.path.join(path, "data.mat")
 
 eng = matlab.engine.start_matlab() 
-eng.cd(path, nargout=0)
+try:
+    eng.cd(path, nargout=0)
 
-phase = [np.zeros((U,U)), np.zeros((U,U))]
-Eout = [np.zeros((U,U)),np.zeros((U,U))]
-for i, wav in enumerate(wav):
-    Eout_i, phase_i = eng.NBphase(r, single, wav, l, float(Fnum), start, stop, singleDownsampling, loop, popnum, Ft, Ft_low, nargout=2)
-    phase[i] = np.array(phase_i)
-    Eout[i] = np.array(Eout_i)
-    print("Next")
+    phase = [np.zeros((U,U)), np.zeros((U,U))]
+    Eout = [np.zeros((U,U)),np.zeros((U,U))]
+    for i, wav in enumerate(wav):
+        Eout_i, phase_i = eng.NBphase(r, single, wav, l, float(Fnum), start, stop, singleDownsampling, loop, popnum, Ft, Ft_low, nargout=2)
+        phase[i] = np.array(phase_i)
+        Eout[i] = np.array(Eout_i)
+        print("Next")
+finally:
+    eng.quit()
 
 phase780 = np.zeros([U, U])
 phase532 = np.zeros([U, U])

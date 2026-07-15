@@ -85,17 +85,20 @@ path = os.path.join(current_dir, "Special_Phase_Implementation")
 save_path = os.path.join(path, "data.mat")
 
 eng = matlab.engine.start_matlab()
-eng.cd(path, nargout=0)
+try:
+    eng.cd(path, nargout=0)
 
-target_wav = [0.780e-6,0.532e-6]
+    target_wav = [0.780e-6,0.532e-6]
 
-phase = [np.zeros((U,U)), np.zeros((U,U))]
-Eout = [np.zeros((U,U)),np.zeros((U,U))]
-for i, wav in enumerate(target_wav):
-    Eout_i, phase_i = eng.NBphase(r, single, wav, l, float(Fnum), start, stop, singleDownsampling, loop, popnum, Ft, Ft_low, nargout=2)
+    phase = [np.zeros((U,U)), np.zeros((U,U))]
+    Eout = [np.zeros((U,U)),np.zeros((U,U))]
+    for i, wav in enumerate(target_wav):
+        Eout_i, phase_i = eng.NBphase(r, single, wav, l, float(Fnum), start, stop, singleDownsampling, loop, popnum, Ft, Ft_low, nargout=2)
 
-    phase[i] = np.array(phase_i)
-    Eout[i] = np.array(Eout_i)
+        phase[i] = np.array(phase_i)
+        Eout[i] = np.array(Eout_i)
+finally:
+    eng.quit()
 
 id = np.zeros((U, U), dtype=int)
 
