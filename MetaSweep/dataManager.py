@@ -2,10 +2,11 @@ import numpy as np
 from collections import defaultdict
 import sqlite3
 import os
+import gdstk
 
 def dataBaseClean():
     base_dir = os.getcwd()
-    DB_PATH = os.path.join(base_dir, "data", "Main.db")
+    DB_PATH = os.path.join(base_dir, "MetaBase", "Main.db")
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
 
@@ -23,7 +24,7 @@ def dataBaseClean():
 def defineMainvalue(P,H):
     ## 链接到主数据库
     base_dir = os.getcwd()
-    DB_PATH = os.path.join(base_dir, "data", "Main.db")
+    DB_PATH = os.path.join(base_dir, "MetaBase", "Main.db")
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
     print('Empty database is now online')
@@ -48,7 +49,7 @@ def defineMainvalue(P,H):
 def parameterFilling(structerClass, classParameter):
     ## 重新加载主参数序列
     base_dir = os.getcwd()
-    DB_PATH = os.path.join(base_dir, "data", "Main.db")
+    DB_PATH = os.path.join(base_dir, "MetaBase", "Main.db")
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
 
@@ -126,7 +127,7 @@ def parameterFilling(structerClass, classParameter):
     
 def databaseCount():
     base_dir = os.getcwd()
-    DB_PATH = os.path.join(base_dir, "data", "Main.db")
+    DB_PATH = os.path.join(base_dir, "MetaBase", "Main.db")
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
 
@@ -152,7 +153,7 @@ def databaseCount():
 def resumeTaskDirectory():
     # 连接数据库
     base_dir = os.getcwd()
-    DB_PATH = os.path.join(base_dir, "data", "Main.db")
+    DB_PATH = os.path.join(base_dir, "MetaBase", "Main.db")
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row  # 允许用列名访问数据
     cursor = conn.cursor()
@@ -187,7 +188,7 @@ def dataInput(meta, id, conn, cursor):
     
 def resumeCount():
     base_dir = os.getcwd()
-    DB_PATH = os.path.join(base_dir, "data", "Main.db")
+    DB_PATH = os.path.join(base_dir, "MetaBase", "Main.db")
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
 
@@ -211,3 +212,118 @@ def dataInput_Parallel(Ex, Trans, id, conn, cursor):
     sql = f"UPDATE Parameter SET {set_clause} WHERE ID = ?"
     cursor.execute(sql, values + [id])
     conn.commit()
+
+def Create_template(id, cursor, lib):
+    cursor.execute('SELECT class, parameterA, parameterB, parameterC FROM Parameter WHERE ID=(?)', (id,))
+    row = cursor.fetchone()
+    Class, parameterA, parameterB, parameterC = row
+    if Class == 1:
+        radius = parameterA*1e6
+        cell_name = f"CIRCLE_{radius:.6f}"
+        cell = lib.new_cell(cell_name)
+        circle = gdstk.ellipse((0, 0), radius, tolerance=1e-3)
+        cell.add(circle)
+    elif Class == 2:
+        long = parameterA*1e6
+        cell_name = f"RECT_{long:.6f}"
+        cell = lib.new_cell(cell_name)
+        half = long/2
+        rect = gdstk.rectangle((-half, -half),( half,  half))
+        cell.add(rect)
+    elif Class == 3:
+        long, short = parameterA*1e6, parameterB*1e6
+        cell_name = f"Cross_{long:.6f}_{short:.6f}"
+        cell = lib.new_cell(cell_name)
+        half_long = long/2
+        half_short = short/2
+        rect_h = gdstk.rectangle((-half_long, -half_short),( half_long,  half_short))
+        rect_v = gdstk.rectangle((-half_short, -half_long),( half_short,  half_long))
+        cell.add(rect_h)
+        cell.add(rect_v)
+    elif Class == 4:
+        long, short, radius = parameterA*1e6, parameterB*1e6, parameterC
+        cell_name = f"Fishnet_{long:.6f}_{short:.6f}_{radius:.6f}"
+        cell = lib.new_cell(cell_name)
+        half_long = long/2
+        half_short = short/2
+        rect_h = gdstk.rectangle((-half_long, -half_short),( half_long,  half_short))
+        rect_v = gdstk.rectangle((-half_short, -half_long),( half_short,  half_long))
+        circle = gdstk.ellipse((0, 0), radius, tolerance=1e-3)
+        cell.add(rect_h)
+        cell.add(rect_v)
+        cell.add(circle)
+    return cell
+
+def write_GDS_from_id_matrix(ids, output_filename="metalens_layout.gds", db_path=None):
+    """将结构 ID 矩阵直接写入 GDS 文件。
+
+    唯一必需输入为 ids 矩阵（2D numpy array，每个元素为数据库中的结构 ID）。
+    周期 single 从数据库自动读取（通过 ids 中任意有效 ID 反查 baseValue）。
+    半径 r 根据 ids 矩阵尺寸和 single 自动计算。
+
+    Args:
+        ids (np.ndarray):  (U, U) 的结构 ID 矩阵，圆外区域应为 np.nan
+        output_filename (str): 输出 GDS 文件名
+        db_path (str, optional): 数据库路径，默认使用 MetaBase/Main.db
+    """
+    import gdstk
+    from tqdm import tqdm
+
+    if db_path is None:
+        base_dir = os.getcwd()
+        db_path = os.path.join(base_dir, "MetaBase", "Main.db")
+
+    conn = sqlite3.connect(db_path)
+    cursor = conn.cursor()
+
+    # ---- 从数据库自动获取 single（周期）----
+    # 取 ids 中第一个有效 ID，反查其 baseValue，再查 single
+    valid_mask = ~np.isnan(ids)
+    if not np.any(valid_mask):
+        raise ValueError("ids 矩阵中没有有效 ID（全为 NaN）。")
+
+    first_id = int(ids[valid_mask][0])
+    cursor.execute("SELECT baseValue FROM Parameter WHERE ID = ?", (first_id,))
+    row = cursor.fetchone()
+    if row is None:
+        raise ValueError(f"ID {first_id} 在数据库中不存在。")
+    base_value = row[0]
+
+    cursor.execute("SELECT parameterA FROM BaseParameter WHERE baseValue = ?", (base_value,))
+    row = cursor.fetchone()
+    if row is None:
+        raise ValueError(f"baseValue {base_value} 在数据库中不存在。")
+    single = row[0]  # 周期 (m)
+
+    # ---- 计算几何参数 ----
+    U = ids.shape[0]
+    r = U * single / 2  # 半径 (m)
+
+    print(f"Auto-detected: U={U}, single={single*1e9:.0f}nm, r={r*1e6:.1f}um")
+
+    # ---- 坐标网格 (um) ----
+    x = np.linspace(-(r - 0.5 * single), (r - 0.5 * single), U) * 1e6
+    y = np.linspace(-(r - 0.5 * single), (r - 0.5 * single), U) * 1e6
+    X, Y = np.meshgrid(x, y)
+
+    # 圆形掩膜
+    ids_copy = ids.copy()
+    ids_copy[np.sqrt(X**2 + Y**2) > (r * 1e6)] = np.nan
+    id_list = np.unique(ids_copy[~np.isnan(ids_copy)]).astype(int)
+
+    # ---- GDS 生成 ----
+    lib = gdstk.Library(unit=1e-6, precision=1e-9)
+    top = lib.new_cell("TOP")
+
+    for sid in tqdm(id_list, desc="Writing GDS"):
+        cell = Create_template(int(sid), cursor, lib)
+        positions = np.argwhere(ids_copy == sid)
+        for po in positions:
+            px, py = X[po[0], po[1]], Y[po[0], po[1]]
+            ref = gdstk.Reference(cell, origin=(px, py))
+            top.add(ref)
+
+    lib.write_gds(output_filename)
+    print(f"GDS 文件已生成: {output_filename}")
+
+    conn.close()

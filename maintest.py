@@ -1,6 +1,6 @@
-from Exhaustive_parameter_sweep import main as me
-from Data_quality_evaluation import main as md
-from data import dataBaseCreat as data
+from MetaSweep import main as me
+from MetaEval import main as md
+from MetaBase import dataBaseCreat as data
 ## 是否开启并行
 ## 是否初始化
 parallel=True

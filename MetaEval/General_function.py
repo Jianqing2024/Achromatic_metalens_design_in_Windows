@@ -15,7 +15,7 @@ class Command:
 
         # 读取数据库
         base_dir = os.getcwd()
-        DB_PATH = os.path.join(base_dir, "data", "Main.db")
+        DB_PATH = os.path.join(base_dir, "MetaBase", "Main.db")
         uri_path = f"file:{DB_PATH}?mode=ro"
         conn = sqlite3.connect(uri_path, uri=True)
         cursor = conn.cursor()
@@ -63,7 +63,7 @@ def Target_Phase_Standrad_1D(x: np.ndarray, wav, f):
 
 def Read_Parameter():
     base_dir = os.getcwd()
-    filename = os.path.join(base_dir, "data", "parameter.txt")
+    filename = os.path.join(base_dir, "MetaBase", "parameter.txt")
 
     with open(filename, 'r') as f:
         lines = f.readlines()

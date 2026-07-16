@@ -3,7 +3,7 @@ import os
 
 def TaskDatabase_Creat():
     base_dir = os.getcwd()
-    DB_PATH = os.path.join(base_dir, "data", "Task.db")
+    DB_PATH = os.path.join(base_dir, "MetaBase", "Task.db")
     
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()

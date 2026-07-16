@@ -1,6 +1,6 @@
 import matlab.engine
 from scipy.io import savemat
-from Data_quality_evaluation import main
+from MetaEval import main
 import os
 from MetaSet import advancedStructure as ad
 import numpy as np
@@ -49,7 +49,7 @@ best = int(main.Preliminary_numerical_evaluation(48))
 print(best)
 
 base_dir = os.getcwd()
-DB_PATH = os.path.join(base_dir, "data", "Main.db")
+DB_PATH = os.path.join(base_dir, "MetaBase", "Main.db")
 uri_path = f"file:{DB_PATH}?mode=ro"
 conn = sqlite3.connect(uri_path, uri=True)
 cursor = conn.cursor()
@@ -81,7 +81,7 @@ Ft_low = Random_Matrix_Generation(UDownsampling, Fnum)
 print(Ft.shape)
 
 current_dir = os.getcwd()
-path = os.path.join(current_dir, "Special_Phase_Implementation")
+path = os.path.join(current_dir, "MetaPhase")
 save_path = os.path.join(path, "data.mat")
 
 eng = matlab.engine.start_matlab()
@@ -190,5 +190,5 @@ meta.fdtd.load("AllWav.fsp")
 Ex_plane = meta.fdtd.getresult("Monitor plane", "Ex")
 Ex_plane = np.squeeze(Ex_plane)
 
-savemat("D:\\WORK\\Achromatic_metalens_design_in_Windows\\Special_Phase_Implementation\\End.mat", 
+savemat("D:\\WORK\\Achromatic_metalens_design_in_Windows\\MetaPhase\\End.mat", 
         {'Ex_plane': Ex_plane})

@@ -5,7 +5,7 @@ import sqlite3
 from tqdm import tqdm 
 
 base_dir = os.getcwd() 
-DB_PATH = os.path.join(base_dir, "data", "Main.db") 
+DB_PATH = os.path.join(base_dir, "MetaBase", "Main.db") 
 uri_path = f"file:{DB_PATH}?mode=ro" 
 conn = sqlite3.connect(uri_path, uri=True) 
 cursor = conn.cursor() 

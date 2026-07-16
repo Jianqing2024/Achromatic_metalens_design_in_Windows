@@ -1,5 +1,5 @@
-from Exhaustive_parameter_sweep import main
-from data import dataBaseCreat as data
+from MetaSweep import main
+from MetaBase import dataBaseCreat as data
 ## 是否开启并行
 ## 是否初始化
 ## 是否使用模板文件

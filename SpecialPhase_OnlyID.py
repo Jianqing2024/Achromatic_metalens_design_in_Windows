@@ -4,51 +4,10 @@ import sqlite3
 import matlab.engine
 import os
 from tqdm import tqdm
-from Data_quality_evaluation import main
-import gdstk
+from MetaEval import main
 from tqdm import tqdm
 from scipy.spatial import cKDTree
-
-def Create_template(id, cursor, lib):
-    cursor.execute('SELECT class, parameterA, parameterB, parameterC FROM Parameter WHERE ID=(?)', (id,))
-    row = cursor.fetchone()
-    Class, parameterA, parameterB, parameterC = row
-    if Class == 1:
-        radius = parameterA*1e6
-        cell_name = f"CIRCLE_{radius:.6f}"
-        cell = lib.new_cell(cell_name)
-        circle = gdstk.ellipse((0, 0), radius, tolerance=1e-3)
-        cell.add(circle)
-    elif Class == 2:
-        long = parameterA*1e6
-        cell_name = f"RECT_{long:.6f}"
-        cell = lib.new_cell(cell_name)
-        half = long/2
-        rect = gdstk.rectangle((-half, -half),( half,  half))
-        cell.add(rect)
-    elif Class == 3:
-        long, short = parameterA*1e6, parameterB*1e6
-        cell_name = f"Cross_{long:.6f}_{short:.6f}"
-        cell = lib.new_cell(cell_name)
-        half_long = long/2
-        half_short = short/2
-        rect_h = gdstk.rectangle((-half_long, -half_short),( half_long,  half_short))
-        rect_v = gdstk.rectangle((-half_short, -half_long),( half_short,  half_long))
-        cell.add(rect_h)
-        cell.add(rect_v)
-    elif Class == 4:
-        long, short, radius = parameterA*1e6, parameterB*1e6, parameterC
-        cell_name = f"Fishnet_{long:.6f}_{short:.6f}_{radius:.6f}"
-        cell = lib.new_cell(cell_name)
-        half_long = long/2
-        half_short = short/2
-        rect_h = gdstk.rectangle((-half_long, -half_short),( half_long,  half_short))
-        rect_v = gdstk.rectangle((-half_short, -half_long),( half_short,  half_long))
-        circle = gdstk.ellipse((0, 0), radius, tolerance=1e-3)
-        cell.add(rect_h)
-        cell.add(rect_v)
-        cell.add(circle)
-    return cell
+from MetaSweep.dataManager import write_GDS_from_id_matrix
 
 def Random_Matrix_Generation(U, Fnum):
     xb = int(U / np.sqrt(Fnum))
@@ -73,7 +32,7 @@ def Random_Matrix_Generation(U, Fnum):
 best = int(main.Preliminary_numerical_evaluation(48))
 
 base_dir = os.getcwd()
-DB_PATH = os.path.join(base_dir, "data", "Main.db")
+DB_PATH = os.path.join(base_dir, "MetaBase", "Main.db")
 uri_path = f"file:{DB_PATH}?mode=ro"
 conn = sqlite3.connect(uri_path, uri=True)
 cursor = conn.cursor()
@@ -81,15 +40,15 @@ cursor = conn.cursor()
 cursor.execute('SELECT parameterA, parameterB FROM BaseParameter WHERE baseValue=(?)', (best,))
 row = cursor.fetchone()
 
-r = 0.5e-3
+r = 0.25e-3
 single = row[0]
 H = row[1]
-wav = [1.550e-6, 1.310e-6]
-l = 5e-3
+wav = [0.8e-6, 0.532e-6]
+l = 1.5e-3
 Fnum = 25
-start = 5e-3
-stop = 5.5e-3
-singleDownsampling = 0.8e-6
+start = 1.1e-3
+stop = 1.6e-3
+singleDownsampling = single * 2
 loop = 10
 popnum = 10
 
@@ -101,7 +60,7 @@ Ft = Random_Matrix_Generation(U, Fnum)
 Ft_low = Random_Matrix_Generation(UDownsampling, Fnum)
 
 current_dir = os.getcwd()
-path = os.path.join(current_dir, "Special_Phase_Implementation")
+path = os.path.join(current_dir, "MetaPhase")
 save_path = os.path.join(path, "data.mat")
 
 eng = matlab.engine.start_matlab() 
@@ -150,24 +109,6 @@ savemat("D:\\WORK\\Achromatic_metalens_design_in_Windows\\figure\\End.mat", {'ph
 
 np.save("id.npy", ids)
 print("ID has been saved")
-id_list = np.unique(ids)
 
-lib = gdstk.Library(unit=1e-6, precision=1e-9)
-top = lib.new_cell("TOP")
-
-x = np.linspace(-(r-0.5*single), (r-0.5*single), U)*1e6
-y = np.linspace(-(r-0.5*single), (r-0.5*single), U)*1e6
-X, Y = np.meshgrid(x, y)
-
-ids[np.sqrt(X**2 + Y**2)>(r*1e6)] = np.nan
-
-for id in tqdm(id_list):
-    cell = Create_template(id, cursor, lib)
-    positions = np.argwhere(ids == id)
-    for po in positions:
-        x, y = X[po[0],po[1]], Y[po[0],po[1]]
-        ref = gdstk.Reference(cell, origin=(x, y))
-        top.add(ref)
-
-lib.write_gds("physical_parameter_circles.gds")
-print("GDS 文件已生成")
+# 生成 GDS 文件：唯一输入为 ID 矩阵，周期 single 从数据库自动读取
+write_GDS_from_id_matrix(ids, "physical_parameter_circles.gds")

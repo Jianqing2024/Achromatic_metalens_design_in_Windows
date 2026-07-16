@@ -11,7 +11,7 @@ def Empty_array(N):
 
 def BaseParameter_Check():
     base_dir = os.getcwd()
-    DB_PATH = os.path.join(base_dir, "data", "Main.db")
+    DB_PATH = os.path.join(base_dir, "MetaBase", "Main.db")
 
     uri_path = f"file:{DB_PATH}?mode=ro"
 
@@ -27,7 +27,7 @@ def Numerical_Evaluation(N):
     BPnum = BaseParameter_Check()
     
     base_dir = os.getcwd()
-    DB_PATH = os.path.join(base_dir, "data", "Main.db")
+    DB_PATH = os.path.join(base_dir, "MetaBase", "Main.db")
 
     uri_path = f"file:{DB_PATH}?mode=ro"
 

@@ -21,4 +21,20 @@ phase = k*l + k*(X.^2 + Y.^2)/(2*Rz) - psi;
 
 Eout = amplitude .* exp(1i * phase);
 
+% lambda = lambda/n;
+% 
+% x = linspace(-(r-0.5*single),(r-0.5*single),U);
+% y = linspace(-(r-0.5*single),(r-0.5*single),U);
+% [X, Y] = meshgrid(x, y);
+% 
+% f = pi*w0^2/lambda;
+% r2 = X.^2+Y.^2;
+% k = 2*pi/lambda;
+% w = w0*sqrt(1+(l/f));
+% R = l+f^2/l;
+% 
+% A = 1/w*exp(-r2/(w^2));
+% P = exp(-1i*(k*(l+r2/(2*R))-atan(l/f)));
+% Eout = A*P;
+
 end

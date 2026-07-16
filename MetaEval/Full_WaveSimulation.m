@@ -85,7 +85,7 @@ function [r, f] = Read_Parameter()
     project_root = fullfile(current_dir, '..');
     
     % 拼接 data 文件夹里的 parameter.txt
-    filename = fullfile(project_root, 'data', 'parameter.txt');
+    filename = fullfile(project_root, 'MetaBase', 'parameter.txt');
     
     % 打开文件
     fid = fopen(filename, 'r');

@@ -47,7 +47,7 @@ def KDSerch(shift0, shift1, shift2, shift3, shift4, f_shift, COM, OP=True):
     COM.Shift(shift0, shift1, shift2, shift3, shift4, f_shift)
 
     base_dir = os.getcwd()
-    DB_PATH = os.path.join(base_dir, "data", "Main.db")
+    DB_PATH = os.path.join(base_dir, "MetaBase", "Main.db")
     uri_path = f"file:{DB_PATH}?mode=ro"
 
     conn = sqlite3.connect(uri_path, uri=True)
@@ -135,7 +135,7 @@ def save_MAT(id_matrix, X, Y):
         id_to_angle = {}
 
         base_dir = os.getcwd()
-        DB_PATH = os.path.join(base_dir, "data", "Main.db")
+        DB_PATH = os.path.join(base_dir, "MetaBase", "Main.db")
         uri_path = f"file:{DB_PATH}?mode=ro"
         conn = sqlite3.connect(uri_path, uri=True)
         cursor = conn.cursor()
@@ -168,7 +168,7 @@ def save_MAT(id_matrix, X, Y):
 
     # 保存为 .mat 文件
     current_dir = os.getcwd()
-    save_path = os.path.join(current_dir, "Data_quality_evaluation", "dataPhase.mat")
+    save_path = os.path.join(current_dir, "MetaEval", "dataPhase.mat")
     savemat(save_path, {
         'phase0': phase[0],
         'phase1': phase[1],
@@ -184,7 +184,7 @@ def OneD_ModelAndRun(matched_ids, COM):
     matched_ids = np.concatenate([np.flip(matched_ids), matched_ids])
     
     base_dir = os.getcwd()
-    DB_PATH = os.path.join(base_dir, "data", "Main.db")
+    DB_PATH = os.path.join(base_dir, "MetaBase", "Main.db")
 
     uri_path = f"file:{DB_PATH}?mode=ro"
 
@@ -255,7 +255,7 @@ def get_data():
     aaa = meta.fdtd.getdata("Monitor", "Ex")
 
     current_dir = os.getcwd()
-    save_path = os.path.join(current_dir, "Data_quality_evaluation", 'MonitorData.mat')
+    save_path = os.path.join(current_dir, "MetaEval", 'MonitorData.mat')
     savemat(save_path, {'data': aaa})
     
     current_dir = os.getcwd()
@@ -269,7 +269,7 @@ def get_data():
 
 def Focal_Point_Calculation():
     current_dir = os.getcwd()
-    target_dir = os.path.join(current_dir, "Data_quality_evaluation")
+    target_dir = os.path.join(current_dir, "MetaEval")
     
     eng = matlab.engine.start_matlab()
     try:

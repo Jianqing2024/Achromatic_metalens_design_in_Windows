@@ -4,7 +4,7 @@ import numpy as np
 
 def DatabaseCreat(SpectralRange, material):
     base_dir = os.getcwd()
-    DB_PATH = os.path.join(base_dir, "data", "Main.db")
+    DB_PATH = os.path.join(base_dir, "MetaBase", "Main.db")
 
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()

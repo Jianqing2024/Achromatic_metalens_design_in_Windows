@@ -7,7 +7,7 @@ from .dataManager import *
 
 def Comput(ids, template, SpectralRange):
     base_dir = os.getcwd()
-    DB_PATH = os.path.join(base_dir, "data", "Main.db")
+    DB_PATH = os.path.join(base_dir, "MetaBase", "Main.db")
     conn = sqlite3.connect(DB_PATH)
     cursor = conn.cursor()
 
@@ -111,7 +111,7 @@ def StandardDataAcquisition(meta, name):
 
 def ParallelComput(numParallel):
     RUN_PATH = os.getcwd()
-    DB_PATH = os.path.join(RUN_PATH, "data", "Main.db")
+    DB_PATH = os.path.join(RUN_PATH, "MetaBase", "Main.db")
     SIMULATION_PATH = os.path.join(RUN_PATH, "Temporary_computation_folder")
     
     conn = sqlite3.connect(DB_PATH)

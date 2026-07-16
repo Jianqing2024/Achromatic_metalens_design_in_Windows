@@ -90,7 +90,7 @@ class MetaEngine:
         
         if template:
             base_dir = os.getcwd()
-            template_path = os.path.join(base_dir, "data", "STANDARD.fsp")
+            template_path = os.path.join(base_dir, "MetaBase", "STANDARD.fsp")
             computation_path = os.path.join(base_dir, f"{name}.fsp")           
             if not os.path.isfile(template_path):
                 raise FileNotFoundError(f"模板文件未找到: {template_path}")
