@@ -1,6 +1,5 @@
 function Eout = Light_Field_SA_A(Ft, ft, r, l, single, lambda, U, A)
 
-Ft = double(Ft);
 ft = sort(ft);
 
 F = ft(Ft);

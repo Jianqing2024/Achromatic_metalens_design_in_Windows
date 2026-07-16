@@ -1,6 +1,5 @@
 function [Eout, phi] = Light_Field_SA_B(Ft, ft, r, l, single, lambda, U, At)
 
-Ft = double(Ft);
 ft = sort(ft);
 
 F = ft(Ft);
