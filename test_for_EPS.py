@@ -10,7 +10,7 @@ template=True
 #  修改材料和波段后请在计算部分手动检验，此处仅作提示
 material = 'TiO2_real'
 #  第一个值是最大波长，第二个值是最小波长
-SpectralRange = [1.550e-6,1.310e-6]
+SpectralRange = [0.800e-6, 0.532e-6]
 
 if initial:
     data.DatabaseCreat(SpectralRange, material)

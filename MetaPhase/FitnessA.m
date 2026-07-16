@@ -1,22 +1,7 @@
-function FIT = FitnessA(Ft ,x)
+function FIT = FitnessA(Ft, r, single, lambda, l, Fnum, start, stop, U, x)
 A = x(1);
 V = x(2);
 D = x(3);
-
-para=parameter_preset();
-
-r=para.r;
-single=para.single;
-lambda=para.lambda;
-
-Fnum=para.Fnum;
-
-l=para.l;
-
-start=para.start;
-stop=para.stop;
-
-U=para.U;
 
 ft = Focal_Sequence_Generation(start, Fnum, V, D);
 Eout = Light_Field_SA_A(Ft, ft, r, l, single, lambda, U, A);

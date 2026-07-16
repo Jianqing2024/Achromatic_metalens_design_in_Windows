@@ -79,7 +79,7 @@ def cross(fdtd, material, h, l, w, *, name="newGroup"):
     
 class MetaEngine:
     def __init__(self, hide=True, name='test', parallel=False, template=False, SpectralRange=[0.800e-6, 0.532e-6]):
-        lumapi_path = "D:\\Program Files\\Lumerical\\v241\\api\\python\\lumapi.py"
+        lumapi_path = "D:\\Program Files\\ANSYS Inc\\v251\\Lumerical\\api\\python\\lumapi.py"
 
         spec = importlib.util.spec_from_file_location("lumapi", lumapi_path)
         if spec is None or spec.loader is None:

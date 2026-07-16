@@ -1,12 +1,10 @@
-function phi  = main()
-%% 参数设置
-para=parameter_preset();
+function phi = main(r,single,lambda,l,Fnum,start,stop,popSize)
 
-U = para.U;
-Fnum = para.Fnum;
+U = int16(r/single*2);
+%% 参数设置
 
 Ft = Random_Matrix_Generation(U,Fnum);
-fitnessFcn = @(x) FitnessA(Ft, x);
+fitnessFcn = @(x) FitnessA(Ft, r, single, lambda, l, Fnum, start, stop, U, x);
 
 options = optimoptions('ga', ...
     'Display', 'iter', ...
@@ -26,24 +24,7 @@ A = bestList(1);
 V = bestList(2);
 D = bestList(3);
 
-para=parameter_preset();
-
-r=para.r;
-single=para.single;
-lambda=para.lambda;
-
-Fnum=para.Fnum;
-
-l=para.l;
-
-start=para.start;
-stop=para.stop;
-
-U=para.U;
-
-popSize = 50;
-
-fitnessFcn = @(x) FitnessB(Ft, x);
+fitnessFcn = @(x) FitnessB(Ft, r, single, lambda, l, Fnum, start, stop, U, x);
 
 Init_ft = Focal_Sequence_Generation(start, Fnum, V, D)';
 Init_At = A*ones(1,Fnum);

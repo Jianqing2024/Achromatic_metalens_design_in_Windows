@@ -1,17 +1,5 @@
-function FIT = FitnessB(Ft, List)
-para=parameter_preset();
+function FIT = FitnessB(Ft, r, single, lambda, l, Fnum, start, stop, U, List)
 
-r=para.r;
-single=para.single;
-lambda=para.lambda;
-
-l=para.l;
-
-start=para.start;
-stop=para.stop;
-
-U=para.U;
-Fnum=para.Fnum;
 
 ft=List(1:Fnum);
 At=List(Fnum+1:end);

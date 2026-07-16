@@ -12,21 +12,21 @@ def Initial_structure_directory():
     DIC = {}
 
     # 主参数设置
-    DIC['P'] = np.array([0.4e-6]) if single_P else np.linspace(0.8e-6, 1e-6, 4)
-    DIC['H'] = np.array([0.65e-6])  if single_H else np.linspace(0.4e-6, 0.7e-6, 4)
+    DIC['P'] = np.array([0.4e-6]) if single_P else np.linspace(0.4e-6, 5e-6, 3)
+    DIC['H'] = np.array([0.65e-6])  if single_H else np.linspace(0.4e-6, 0.7e-6, 3)
 
     # 类别1
     if use_class_1:
-        DIC['ParameterAForClass1'] = np.linspace(0.04e-6, 0.21e-6, 40)
+        DIC['ParameterAForClass1'] = np.linspace(0.04e-6, 0.21e-6, 20)
 
     # 类别2
     if use_class_2:
-        DIC['ParameterAForClass2'] = np.linspace(0.1e-6, 0.4e-6, 40)
+        DIC['ParameterAForClass2'] = np.linspace(0.1e-6, 0.4e-6, 20)
 
     # 类别3
     if use_class_3:
-        DIC['ParameterAForClass3'] = np.linspace(0.1e-6, 0.4e-6, 40)
-        DIC['ParameterBForClass3'] = np.linspace(0.1e-6, 0.4e-6, 40)
+        DIC['ParameterAForClass3'] = np.linspace(0.1e-6, 0.4e-6, 20)
+        DIC['ParameterBForClass3'] = np.linspace(0.1e-6, 0.4e-6, 20)
 
     # 类别4
     if use_class_4:
