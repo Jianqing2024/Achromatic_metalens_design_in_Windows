@@ -122,6 +122,11 @@ def ParallelComput(numParallel):
 
     meta = ad.MetaEngine(parallel=True, template=True, SpectralRange=[wavMin, wavMax])
     meta.materialSet()
+    
+    threads_per_job = max(1, (os.cpu_count() or 32) // numParallel)
+    meta.fdtd.setresource('FDTD', 1, 'capacity', numParallel)
+    meta.fdtd.setresource('FDTD', 1, 'processes', 1)
+    meta.fdtd.setresource('FDTD', 1, 'threads', threads_per_job)
 
     # 查询所有尚未处理（angleIn1 为 NULL）的行
     cursor.execute("""

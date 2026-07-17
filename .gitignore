@@ -19,4 +19,5 @@ venv/
 *.png
 *.gds
 *.ai
+*.h5
 figure/

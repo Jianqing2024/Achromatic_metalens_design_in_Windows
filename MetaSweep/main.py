@@ -1,38 +1,24 @@
 from .dataManager import *
 from .compute import *
 
-def Initial_structure_directory():
-    use_class_1=True
-    use_class_2=True
-    use_class_3=True
-    use_class_4=True
-    single_P=False
-    single_H=False
-    
-    DIC = {}
+def Initial_structure_directory(P, H,
+                                class1_A=None, 
+                                class2_A=None,
+                                class3_A=None, class3_B=None,
+                                class4_A=None, class4_B=None, class4_C=None):
+    DIC = {'P': P, 'H': H}
 
-    # 主参数设置
-    DIC['P'] = np.array([0.4e-6]) if single_P else np.linspace(0.4e-6, 5e-6, 3)
-    DIC['H'] = np.array([0.65e-6])  if single_H else np.linspace(0.4e-6, 0.7e-6, 3)
-
-    # 类别1
-    if use_class_1:
-        DIC['ParameterAForClass1'] = np.linspace(0.04e-6, 0.21e-6, 20)
-
-    # 类别2
-    if use_class_2:
-        DIC['ParameterAForClass2'] = np.linspace(0.1e-6, 0.4e-6, 20)
-
-    # 类别3
-    if use_class_3:
-        DIC['ParameterAForClass3'] = np.linspace(0.1e-6, 0.4e-6, 20)
-        DIC['ParameterBForClass3'] = np.linspace(0.1e-6, 0.4e-6, 20)
-
-    # 类别4
-    if use_class_4:
-        DIC['ParameterAForClass4'] = np.linspace(0.05e-6, 0.35e-6, 10)
-        DIC['ParameterBForClass4'] = np.linspace(0.05e-6, 0.35e-6, 10)
-        DIC['ParameterCForClass4'] = np.linspace(0.04e-6, 0.18e-6, 10)
+    if class1_A is not None:
+        DIC['ParameterAForClass1'] = class1_A
+    if class2_A is not None:
+        DIC['ParameterAForClass2'] = class2_A
+    if class3_A is not None and class3_B is not None:
+        DIC['ParameterAForClass3'] = class3_A
+        DIC['ParameterBForClass3'] = class3_B
+    if class4_A is not None and class4_B is not None and class4_C is not None:
+        DIC['ParameterAForClass4'] = class4_A
+        DIC['ParameterBForClass4'] = class4_B
+        DIC['ParameterCForClass4'] = class4_C
 
     return DIC
 
